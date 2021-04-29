@@ -1,1 +1,1 @@
-target_sources(test_data PRIVATE struct_a.cpp)
+target_sources(test_data PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
