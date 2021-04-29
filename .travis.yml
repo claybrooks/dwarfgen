@@ -7,6 +7,9 @@ jobs:
       script:
         - cd test/test_data
         - mkdir -p cmake-build/linux
+        - mkdir -p bin
+        - mkdir -p bin/bin
+        - mkdir -p bin/lib
         - cmake -Bcmake-build/linux -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=bin
         - cmake --build cmake-build/linux/ --target install
 
