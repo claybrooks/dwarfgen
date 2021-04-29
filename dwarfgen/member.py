@@ -1,17 +1,17 @@
 import json
 
 class Member:
-    def __init__(self, name:str, type_offset:int, byte_offset:int):
-        self.name:str = name
-        self.type_offset:int    = type_offset
-        self.byte_offset:int    = byte_offset
-        self.bit_offset:int     = None
-        self.bit_size:int       = None
-        self.byte_size:int      = None
-        self.type_str:str       = None
-        self.upper_bound:int    = None
+    def __init__(self, name, type_offset, byte_offset):
+        self.name = name
+        self.type_offset    = type_offset
+        self.byte_offset    = byte_offset
+        self.bit_offset     = None
+        self.bit_size       = None
+        self.byte_size      = None
+        self.type_str       = None
+        self.upper_bound    = None
 
-    def to_json(self, json:json):
+    def to_json(self, json):
         json['byteOffset'] = self.byte_offset
 
         if self.bit_offset:
