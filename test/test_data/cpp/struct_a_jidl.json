@@ -1,0 +1,50 @@
+{
+    "namespaces": {},
+    "structures": {
+        "StructA": {
+            "size": 32,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byte_size": 1,
+                    "type": "unsigned char"
+                },
+                "b": {
+                    "byteOffset": 1,
+                    "byte_size": 1,
+                    "type": "char"
+                },
+                "c": {
+                    "byteOffset": 2,
+                    "byte_size": 2,
+                    "type": "short unsigned int"
+                },
+                "d": {
+                    "byteOffset": 4,
+                    "byte_size": 2,
+                    "type": "short int"
+                },
+                "e": {
+                    "byteOffset": 8,
+                    "byte_size": 4,
+                    "type": "unsigned int"
+                },
+                "f": {
+                    "byteOffset": 12,
+                    "byte_size": 4,
+                    "type": "int"
+                },
+                "g": {
+                    "byteOffset": 16,
+                    "byte_size": 4,
+                    "type": "float"
+                },
+                "h": {
+                    "byteOffset": 24,
+                    "byte_size": 8,
+                    "type": "double"
+                }
+            }
+        }
+    }
+}

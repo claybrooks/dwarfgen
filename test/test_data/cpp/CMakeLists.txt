@@ -1,0 +1,1 @@
+target_sources(test_data PRIVATE struct_a.cpp)
