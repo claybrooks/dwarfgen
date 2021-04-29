@@ -9,7 +9,7 @@ jobs:
         - cd test/test_data
         - mkdir -p cmake-build/linux
         - ls
-        - cmake --loglevel=TRACE -Bcmake-build/linux -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=bin
+        - cmake -Bcmake-build/linux -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=bin
         - cmake --build cmake-build/linux --target install
 
     - stage: test
