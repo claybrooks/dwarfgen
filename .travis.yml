@@ -1,26 +1,34 @@
-jobs:
-  include:
-    - stage: compile
-      - language: c++
-          compiler:
-            - gcc
-          script:
-            - mkdir -p cmake-build/linux
-            - cd test/test_data
-            - cmake -Bcmake-build/linux -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=bin
-            - cmake --build cmake-build/linux/ --target install
+# jobs:
+#   include:
+#     - stage: compile
+#     - language: c++
+#         compiler:
+#           - gcc
+#         script:
+#           - mkdir -p cmake-build/linux
+#           - cd test/test_data
+#           - cmake -Bcmake-build/linux -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=bin
+#           - cmake --build cmake-build/linux/ --target install
 
-    - stage: test
-      - language: python
-          python:
-            - "3.4"
-            - "3.5"
-            - "3.6"
-            - "3.7"
-            - "3.8"
-            - "3.9"
-          script:
-            python -m unittest test/test.py
+#     - stage: test
+#       - language: python
+#           python:
+#             - "3.4"
+#             - "3.5"
+#             - "3.6"
+#             - "3.7"
+#             - "3.8"
+#             - "3.9"
+#           script:
+#             python -m unittest test/test.py
 
-          install:
-            pip install -r requirements.txt
+#           install:
+#             pip install -r requirements.txt
+language: c++
+  compiler:
+    - gcc
+  script:
+    - mkdir -p cmake-build/linux
+    - cd test/test_data
+    - cmake -Bcmake-build/linux -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=bin
+    - cmake --build cmake-build/linux/ --target install
