@@ -25,10 +25,10 @@
 #           install:
 #             pip install -r requirements.txt
 language: cpp
-  compiler:
-    - gcc
-  script:
-    - mkdir -p cmake-build/linux
-    - cd test/test_data
-    - cmake -Bcmake-build/linux -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=bin
-    - cmake --build cmake-build/linux/ --target install
+compiler:
+  - gcc
+script:
+  - mkdir -p cmake-build/linux
+  - cd test/test_data
+  - cmake -Bcmake-build/linux -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=bin
+  - cmake --build cmake-build/linux/ --target install
