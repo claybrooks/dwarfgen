@@ -1,5 +1,5 @@
 project(dwarfgen_test)
-cmake_minimum_required(VERSION 3.16.3)
+cmake_minimum_required(VERSION 3.12.4)
 
 add_library(test_data SHARED ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_options(test_data PRIVATE -g -fPIC -fno-eliminate-unused-debug-symbols)
