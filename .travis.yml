@@ -24,7 +24,7 @@
 
 #           install:
 #             pip install -r requirements.txt
-language: c++
+language: cpp
   compiler:
     - gcc
   script:
