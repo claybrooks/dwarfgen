@@ -1,20 +1,8 @@
 jobs:
   include:
-    - stage: compile
-      language: cpp
-      compiler:
-        - gcc
-      script:
-        - cmake --version
-        - cd test/test_data
-        - mkdir -p cmake-build/linux
-        - ls
-        - cmake . -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=bin
-        - cmake --build . --target install
-
-    - stage: test
-      language: python
-      script:
-        python -m unittest test/test.py
-      install:
-        pip install -r requirements.txt
+    language: cpp
+    compiler:
+      - gcc
+    script:
+      - cd test
+      - python fulltest.py
