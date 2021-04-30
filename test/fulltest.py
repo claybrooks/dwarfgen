@@ -4,10 +4,12 @@ import sys
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.realpath(os.path.join(TEST_DIR, '..')))
 
-import build
+import build_cpp
+import build_ada
 import subprocess
 
-build.run()
+build_cpp.run()
+build_ada.run()
 
 try:
     subprocess.check_call([

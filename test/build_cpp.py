@@ -8,6 +8,7 @@ PLAT_STR = "{}-{}".format(platform.system(), platform.machine())
 
 
 def run():
+
     os.makedirs('cmake-build', exist_ok=True)
 
     CXX_COMPILER="g++-10"
@@ -27,7 +28,8 @@ def run():
         "--build",
         "cmake-build/{}".format(PLAT_STR),
         "--target",
-        "install"
+        "install",
+        "--verbose"
     ]
 
     if sys.platform.startswith('win'):

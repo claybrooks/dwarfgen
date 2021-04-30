@@ -24,6 +24,7 @@ class TestDwarfgen(unittest.TestCase):
     def __test_jidl_against_expected(self, calculated, expected_file):
         with open(expected_file, 'r') as f:
             expected_jidl = json.load(f)
+
         self.assertEqual(calculated, expected_jidl)
 
 
@@ -39,10 +40,17 @@ class TestDwarfgen(unittest.TestCase):
         self.__test_jidl_against_expected(jidl_json, expected_jidl_file)
 
 
-    def test_StructAToJIDL(self):
+    def test_CPPStructAToJIDL(self):
         self.__validate_so_against_expected(
             os.path.realpath('./bin/lib/libtest_cpp.so'),
             os.path.realpath('./src/cpp/struct_a_jidl.json'),
+        )
+
+
+    def test_ADARecordAToJIDL(self):
+        self.__validate_so_against_expected(
+            os.path.realpath('./bin/lib/libtest_ada.so'),
+            os.path.realpath('./src/ada/test_a/record_a_jidl.json'),
         )
 
 
