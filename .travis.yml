@@ -1,6 +1,8 @@
 jobs:
   include:
     language: cpp
+    install:
+      python3 -m pip install -r requirements.txt
     compiler:
       - gcc
     script:
