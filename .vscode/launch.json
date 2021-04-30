@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Test Suite",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/fulltest.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/test"
+        },
+        {
             "name": "Test",
             "type": "python",
             "request": "launch",
