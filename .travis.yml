@@ -5,4 +5,5 @@ jobs:
       - gcc
     script:
       - cd test
+      - pwd
       - python3 fulltest.py
