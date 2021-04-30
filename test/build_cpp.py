@@ -28,8 +28,7 @@ def run():
         "--build",
         "cmake-build/{}".format(PLAT_STR),
         "--target",
-        "install",
-        "--verbose"
+        "install"
     ]
 
     if sys.platform.startswith('win'):
