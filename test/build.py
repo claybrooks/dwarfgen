@@ -15,6 +15,8 @@ def run():
 
     CMAKE_GENERATE=[
         "cmake",
+        "-S",
+        ".",
         "-Bcmake-build/{}".format(PLAT_STR),
         "-DCMAKE_BUILD_TYPE=Debug",
         "-DCMAKE_INSTALL_PREFIX=bin",
