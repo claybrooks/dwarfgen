@@ -4,9 +4,10 @@ dist: xenial
 jobs:
   include:
     - language: python
+      before_install:
+        - sudo apt-get -y install gnat
       install:
         - python3 -m pip install -r requirements.txt
-        - apt install gnat
       script:
         - cd test
         - python3 fulltest.py
