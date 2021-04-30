@@ -3,7 +3,6 @@ import sys
 
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.realpath(os.path.join(TEST_DIR, '..')))
-print (sys.path)
 
 import build
 import subprocess
