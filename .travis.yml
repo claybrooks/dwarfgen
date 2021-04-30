@@ -4,7 +4,9 @@ dist: xenial
 jobs:
   include:
     - language: python
-      install: python3 -m pip install -r requirements.txt
+      install:
+        - python3 -m pip install -r requirements.txt
+        - apt install gnat
       script:
         - cd test
         - python3 fulltest.py
