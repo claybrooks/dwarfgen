@@ -3,8 +3,6 @@ os: linux
 dist: xenial
 jobs:
   include:
-    - language: cpp
-      compiler: gcc
     - language: python
       install: python3 -m pip install -r requirements.txt
       script:
