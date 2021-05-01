@@ -15,6 +15,31 @@ class FlatStructure:
         self.type_defs = {}
 
 
+def wrap_die(die):
+
+    setattr(die, "has_artificial",  lambda x=die: 'DW_AT_artificial' in x.attributes)
+    setattr(die, "artificial",      lambda x=die: x.attributes['DW_AT_artificial'].value)
+    setattr(die, "is_artificial",   lambda x=die: x.has_artificial() and x.artificial() == 1)
+
+    setattr(die, "has_byte_size",   lambda x=die: 'DW_AT_byte_size' in x.attributes)
+    setattr(die, "has_name",        lambda x=die: 'DW_AT_name' in x.attributes)
+    setattr(die, "has_type",        lambda x=die: 'DW_AT_type' in x.attributes)
+    setattr(die, "has_bit_size",    lambda x=die: 'DW_AT_bit_size' in x.attributes)
+    setattr(die, "has_bit_offset",  lambda x=die: 'DW_AT_bit_offset' in x.attributes)
+    setattr(die, "has_upper_bound", lambda x=die: 'DW_AT_upper_bound' in x.attributes)
+    setattr(die, "has_namespace",   lambda x=die: hasattr(x, 'namespace'))
+
+    setattr(die, "byte_size",       lambda x=die: x.attributes['DW_AT_byte_size'].value)
+    setattr(die, "encoding",        lambda x=die: x.attributes['DW_AT_encoding'].value)
+    setattr(die, "name",            lambda x=die: x.attributes['DW_AT_name'].value.decode())
+    setattr(die, "member_location", lambda x=die: x.attributes['DW_AT_data_member_location'].value)
+    setattr(die, "type",            lambda x=die: x.attributes['DW_AT_type'].value)
+    setattr(die, "bit_size",        lambda x=die: x.attributes['DW_AT_bit_size'].value)
+    setattr(die, "bit_offset",      lambda x=die: x.attributes['DW_AT_bit_offset'].value)
+    setattr(die, "sibling",         lambda x=die: x.attributes['DW_AT_sibling'].value)
+    setattr(die, "upper_bound",     lambda x=die: x.attributes['DW_AT_upper_bound'].value)
+
+
 FLAT = None
 
 
@@ -51,9 +76,9 @@ def build_base_type(die):
         return
 
     FLAT.base_types[die.offset] = {
-        'size': die.attributes['DW_AT_byte_size'].value,
-        'encoding': die.attributes['DW_AT_encoding'].value,
-        'name': die.attributes['DW_AT_name'].value.decode()
+        'size': die.byte_size(),
+        'encoding': die.encoding(),
+        'name': die.name()
     }
 
 
@@ -62,59 +87,57 @@ def build_structure_type(die, namespace):
         return
 
     # we don't care about non-named things
-    if 'DW_AT_name' not in die.attributes:
+    if not die.has_name():
         return
 
     # we don't care about things that don't have a size
-    if 'DW_AT_byte_size' not in die.attributes:
+    if not die.has_byte_size():
         return
 
-    name = die.attributes['DW_AT_name'].value.decode()
-    size = die.attributes['DW_AT_byte_size'].value
+    if die.is_artificial():
+        return
 
-    structure = namespace.add_and_return_structure(name, size)
+    structure = namespace.add_and_return_structure(die.name(), die.byte_size())
 
-    if hasattr(die, 'namespace'):
-        name = die.namespace + '::' + name
+    if die.has_namespace():
+        name = die.namespace + '::' + die.name()
     else:
-        name = '::' + name
+        name = '::' + die.name()
 
     FLAT.structures[die.offset] = {
-        'name': name,
-        'size': size,
+        'name': die.name(),
+        'size': die.byte_size(),
         'members': {}
     }
     members = FLAT.structures[die.offset]['members']
 
     for child in die.iter_children():
+        wrap_die(child)
         if child.tag == 'DW_TAG_member':
-            name        = child.attributes['DW_AT_name'].value.decode()
-            byte_offset = child.attributes['DW_AT_data_member_location'].value
-            type_offset = child.attributes['DW_AT_type'].value
 
             _member = structure.add_and_return_member(
-                name, type_offset, byte_offset
+                child.name(), child.type(), child.member_location()
             )
 
             members[name] = {}
             member = members[name]
 
-            member['name'] = name
-            member['byteOffset'] = byte_offset
-            member['typeOffset'] = type_offset
+            member['name'] = child.name()
+            member['byteOffset'] = child.member_location()
+            member['typeOffset'] = child.type()
 
-            if 'DW_AT_bit_size' in child.attributes:
-                value = child.attributes['DW_AT_bit_size'].value
+            if child.has_bit_size():
+                value = child.bit_size()
                 member['DW_AT_bit_size'] = value
                 _member.bit_size = value
 
-            if 'DW_AT_bit_offset' in child.attributes:
-                value = child.attributes['DW_AT_bit_offset'].value
+            if child.has_bit_offset():
+                value = child.bit_offset()
                 member['DW_AT_bit_offset'] = value
                 _member.bit_offset = value
 
         elif child.tag == 'DW_AT_structure':
-            members[name] = child.attributes['DW_AT_type'].value
+            members[name] = child.type()
 
 
 def build_type_def(die):
@@ -122,12 +145,12 @@ def build_type_def(die):
         return
 
     # ignore typedefs with no type
-    if 'DW_AT_type' not in die.attributes:
+    if not die.has_type():
         return
 
     FLAT.type_defs[die.offset] = {
-        'name': die.attributes['DW_AT_name'].value.decode(),
-        'type': die.attributes['DW_AT_type'].value
+        'name': die.name(),
+        'type': die.type()
     }
 
 
@@ -136,24 +159,24 @@ def build_array_type(die):
         return
 
     FLAT.array_types[die.offset] = {
-        'type': die.attributes['DW_AT_type'].value,
-        'sibling': die.attributes['DW_AT_sibling'].value
+        'type': die.type(),
+        'sibling': die.sibling()
     }
 
 
 def build_subrange_type(die):
     # don't care about things that don't have an underlying type
-    if 'DW_AT_type' not in die.attributes:
+    if not die.has_type():
         return
 
     # don't care about things that don't have an upper bound
-    if 'DW_AT_upper_bound' not in die.attributes:
+    if not die.has_upper_bound:
         return
 
     if die.offset not in FLAT.subrange_types:
         FLAT.subrange_types[die.offset] = {
-            'type': die.attributes['DW_AT_type'].value,
-            'upper_bound': die.attributes['DW_AT_upper_bound'].value
+            'type': die.type(),
+            'upper_bound': die.upper_bound
         }
     parent = die.get_parent()
     if parent.offset in FLAT.array_types:
@@ -162,6 +185,8 @@ def build_subrange_type(die):
 
 def die_info_rec(die, namespace:Namespace):
     for child in die.iter_children():
+        wrap_die(child)
+
         if child.tag == 'DW_TAG_structure_type':
             build_structure_type(child, namespace)
         elif child.tag == 'DW_TAG_base_type':
@@ -173,14 +198,15 @@ def die_info_rec(die, namespace:Namespace):
         elif child.tag == 'DW_TAG_subrange_type':
             build_subrange_type(child)
         elif child.tag == 'DW_TAG_namespace':
-            namespace = namespace.add_and_return_namespace(
-                child.attributes['DW_AT_name'].value.decode()
-            )
+            namespace = namespace.add_and_return_namespace(child.name())
+
             # inject ".namespace" attribute on all children
             for cchild in child.iter_children():
-                cchild.namespace = \
-                    getattr(child, 'namespace', '') + '::' +\
-                        child.attributes['DW_AT_name'].value.decode()
+                curr_ns = getattr(child, 'namespace', None)
+                if curr_ns is None:
+                    cchild.namespace = child.name()
+                else:
+                    cchild.namespace = curr_ns + '::' + child.name()
 
         die_info_rec(child, namespace)
 

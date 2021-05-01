@@ -14,7 +14,7 @@ import json
 
 class TestDwarfgen(unittest.TestCase):
     def setUp(self):
-        pass
+        self.maxDiff = None
 
 
     def tearDown(self):
