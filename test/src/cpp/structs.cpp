@@ -13,8 +13,16 @@ namespace Namespace
         char a;
         int b;
     } StructC;
+
+    namespace InnerNamespace
+    {
+        typedef struct StructD {
+            char a[100];
+        } StructD;
+    }
 }
 
 StructA struct_a;
 StructB struct_b;
 Namespace::StructC struct_c;
+Namespace::InnerNamespace::StructD struct_d;

@@ -15,7 +15,8 @@ import json
 CPP_STRUCTURES = [
     ('StructA', []),
     ('StructB', []),
-    ('StructC', ['Namespace'])
+    ('StructC', ['Namespace']),
+    ('StructD', ['Namespace', 'InnerNamespace'])
 ]
 
 ADA_STRUCTURES = [
@@ -69,9 +70,9 @@ class TestDwarfGen(unittest.TestCase):
 
     def __get_structure(self, jidl, structure_name, namespace=None):
         json_ptr = jidl
-        if namespace:
-            for ns in namespace:
-                json_ptr = json_ptr['namespaces'][ns]
+
+        for ns in namespace:
+            json_ptr = json_ptr['namespaces'][ns]
 
         return json_ptr['structures'][structure_name]
 
