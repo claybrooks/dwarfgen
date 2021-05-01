@@ -36,7 +36,7 @@ ap.add_argument(
     '--to-lang',
     action='append',
     default=[],
-    choices=['ada', 'c', 'c++', 'java', 'python']
+    choices=[]
 )
 
 ap.add_argument(
