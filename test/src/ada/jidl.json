@@ -23,7 +23,32 @@
                     "byteOffset": 0,
                     "byteSize": 100,
                     "type": "array of character",
-                    "upperBound": 99
+                    "lowerBound": 1,
+                    "upperBound": 100
+                }
+            }
+        },
+        "records__record_c": {
+            "byteSize": 101,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 101,
+                    "type": "array of character",
+                    "lowerBound": 0,
+                    "upperBound": 100
+                }
+            }
+        },
+        "records__record_d": {
+            "byteSize": 90,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 90,
+                    "type": "array of character",
+                    "lowerBound": 10,
+                    "upperBound": 100
                 }
             }
         }

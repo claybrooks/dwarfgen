@@ -22,6 +22,7 @@ CPP_STRUCTURES = [
 ADA_STRUCTURES = [
     ('records__record_a', []),
     ('records__record_b', []),
+    ('records__record_c', []),
 ]
 
 

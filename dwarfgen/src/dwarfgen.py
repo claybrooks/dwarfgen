@@ -1,10 +1,16 @@
 import json
+import logging
 from elftools.elf.elffile import ELFFile
 
 from .namespace import  Namespace
 from .structure import Structure
 from .member import Member
 
+
+DEFAULT_LOWER_BOUND = {
+    'C++': 0,
+    'ADA': 1,
+}
 
 class FlatStructure:
     def __init__(self):
@@ -27,6 +33,7 @@ def wrap_die(die):
     setattr(die, "has_bit_size",    lambda x=die: 'DW_AT_bit_size' in x.attributes)
     setattr(die, "has_bit_offset",  lambda x=die: 'DW_AT_bit_offset' in x.attributes)
     setattr(die, "has_upper_bound", lambda x=die: 'DW_AT_upper_bound' in x.attributes)
+    setattr(die, "has_lower_bound", lambda x=die: 'DW_AT_lower_bound' in x.attributes)
     setattr(die, "has_namespace",   lambda x=die: hasattr(x, 'namespace'))
 
     setattr(die, "byte_size",       lambda x=die: x.attributes['DW_AT_byte_size'].value)
@@ -38,13 +45,15 @@ def wrap_die(die):
     setattr(die, "bit_offset",      lambda x=die: x.attributes['DW_AT_bit_offset'].value)
     setattr(die, "sibling",         lambda x=die: x.attributes['DW_AT_sibling'].value)
     setattr(die, "upper_bound",     lambda x=die: x.attributes['DW_AT_upper_bound'].value)
+    setattr(die, "lower_bound",     lambda x=die: x.attributes['DW_AT_lower_bound'].value if x.has_lower_bound() else DEFAULT_LOWER_BOUND[DETECTED_LANGUAGE])
 
 
 FLAT = None
-
+DETECTED_LANGUAGE = None
 
 def process(files):
     global FLAT
+    global DETECTED_LANGUAGE
 
     namespace = Namespace('')
 
@@ -64,6 +73,15 @@ def process(files):
 
         for CU in dwarfinfo.iter_CUs():
             top_DIE = CU.get_top_DIE()
+            producer = top_DIE.attributes['DW_AT_producer'].value.decode()
+            if 'C++' in producer:
+                DETECTED_LANGUAGE = 'C++'
+            elif 'Ada' in producer:
+                DETECTED_LANGUAGE = 'ADA'
+            else:
+                logging.error('Unkown Language from producer {}'.format(producer))
+                continue
+
             die_info_rec(top_DIE, namespace)
 
         resolveNamespace(namespace)
@@ -176,11 +194,14 @@ def build_subrange_type(die):
     if die.offset not in FLAT.subrange_types:
         FLAT.subrange_types[die.offset] = {
             'type': die.type(),
-            'upper_bound': die.upper_bound()
+            'lower_bound': die.lower_bound(),
+            'upper_bound': die.upper_bound(),
         }
+
     parent = die.get_parent()
     if parent.offset in FLAT.array_types:
         FLAT.array_types[parent.offset]['upper_bound'] = FLAT.subrange_types[die.offset]['upper_bound']
+        FLAT.array_types[parent.offset]['lower_bound'] = FLAT.subrange_types[die.offset]['lower_bound']
 
 
 def die_info_rec(die, namespace:Namespace):
@@ -238,8 +259,10 @@ def resolveStructure(structure):
 
         if type_offset in FLAT.array_types:
             member.upper_bound = FLAT.array_types[type_offset]['upper_bound']
+            member.lower_bound = FLAT.array_types[type_offset]['lower_bound']
+
             member.type_str = 'array of ' + member.type_str
-            member.byte_size = (member.upper_bound + 1) * member.byte_size
+            member.byte_size = (member.upper_bound - member.lower_bound + 1) * member.byte_size
             if member.bit_size is not None:
                 member.bit_size = None
 

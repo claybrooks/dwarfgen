@@ -10,6 +10,7 @@ class Member:
         self.byte_size      = None
         self.type_str       = None
         self.upper_bound    = None
+        self.lower_bound    = None
 
     def to_json(self, json):
         json['byteOffset'] = self.byte_offset
@@ -28,3 +29,6 @@ class Member:
 
         if self.upper_bound is not None:
             json['upperBound'] = self.upper_bound
+
+        if self.lower_bound is not None:
+            json['lowerBound'] = self.lower_bound
