@@ -6,7 +6,8 @@ def build_objects(sources):
             "gnatmake",
             "-g",
             src,
-            "-c"
+            "-c",
+            "-fPIC"
         ])
 
 def make_shared(objects):
