@@ -1,5 +1,26 @@
 {
-    "namespaces": {},
+    "namespaces": {
+        "Namespace": {
+            "namespaces": {},
+            "structures": {
+                "StructC": {
+                    "byteSize": 8,
+                    "members": {
+                        "a": {
+                            "byteOffset": 0,
+                            "byteSize": 1,
+                            "type": "char"
+                        },
+                        "b": {
+                            "byteOffset": 4,
+                            "byteSize": 4,
+                            "type": "int"
+                        }
+                    }
+                }
+            }
+        }
+    },
     "structures": {
         "StructA": {
             "byteSize": 8,

@@ -10,6 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/test/fulltest.py",
             "console": "integratedTerminal",
+            "justMyCode": false,
             "cwd": "${workspaceFolder}/test"
         },
         {
@@ -19,6 +20,7 @@
             "program": "${workspaceFolder}/test/test.py",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/test",
+            "justMyCode": false,
             "env": {
                 "PYTHONPATH": "${workspaceFolder}${pathSeparator}${env:PYTHONPATH}"
             }
