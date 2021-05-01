@@ -12,7 +12,7 @@ class Structure:
         return self.members[name]
 
     def to_json(self, json):
-        json['size'] = self.size
+        json['byteSize'] = self.size
         json['members'] = self.obj_to_json(json, self.members)
 
     def obj_to_json(self, json, obj):

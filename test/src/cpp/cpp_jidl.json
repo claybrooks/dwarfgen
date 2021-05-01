@@ -1,0 +1,31 @@
+{
+    "namespaces": {},
+    "structures": {
+        "StructA": {
+            "byteSize": 8,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 1,
+                    "type": "char"
+                },
+                "b": {
+                    "byteOffset": 4,
+                    "byteSize": 4,
+                    "type": "int"
+                }
+            }
+        },
+        "StructB": {
+            "byteSize": 100,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 100,
+                    "type": "array of char",
+                    "upperBound": 99
+                }
+            }
+        }
+    }
+}

@@ -21,10 +21,10 @@ class Member:
             json['bitSize'] = self.bit_size
 
         if self.byte_size is not None:
-            json['byte_size'] = self.byte_size
+            json['byteSize'] = self.byte_size
 
         if self.type_str is not None:
             json['type'] = self.type_str
 
         if self.upper_bound is not None:
-            json['upper_bound'] = self.upper_bound
+            json['upperBound'] = self.upper_bound

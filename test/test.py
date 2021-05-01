@@ -43,14 +43,14 @@ class TestDwarfgen(unittest.TestCase):
     def test_CPPStructAToJIDL(self):
         self.__validate_so_against_expected(
             [os.path.realpath('./bin/lib/libtest_cpp.so')],
-            os.path.realpath('./src/cpp/struct_a_jidl.json'),
+            os.path.realpath('./src/cpp/cpp_jidl.json'),
         )
 
 
     def test_ADARecordAToJIDL(self):
         self.__validate_so_against_expected(
             [os.path.realpath('./bin/lib/libtest_ada.so')],
-            os.path.realpath('./src/ada/test_a/record_a_jidl.json'),
+            os.path.realpath('./src/ada/ada_jidl.json'),
         )
 
 

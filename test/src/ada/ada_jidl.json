@@ -1,0 +1,31 @@
+{
+    "namespaces": {},
+    "structures": {
+        "records__record_a": {
+            "byteSize": 8,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 1,
+                    "type": "character"
+                },
+                "b": {
+                    "byteOffset": 4,
+                    "byteSize": 4,
+                    "type": "integer"
+                }
+            }
+        },
+        "records__record_b": {
+            "byteSize": 100,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 100,
+                    "type": "array of character",
+                    "upperBound": 99
+                }
+            }
+        }
+    }
+}

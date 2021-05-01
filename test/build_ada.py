@@ -32,7 +32,7 @@ def make_shared(objects):
 
 def run():
     sources = [
-        'src/ada/test_a/test_a.ads'
+        'src/ada/records.ads'
     ]
 
     objects = []

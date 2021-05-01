@@ -176,7 +176,7 @@ def build_subrange_type(die):
     if die.offset not in FLAT.subrange_types:
         FLAT.subrange_types[die.offset] = {
             'type': die.type(),
-            'upper_bound': die.upper_bound
+            'upper_bound': die.upper_bound()
         }
     parent = die.get_parent()
     if parent.offset in FLAT.array_types:
