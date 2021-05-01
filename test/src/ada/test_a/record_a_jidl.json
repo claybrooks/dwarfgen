@@ -15,16 +15,6 @@
                     "type": "integer"
                 }
             }
-        },
-        "test_a__a___PAD": {
-            "size": 8,
-            "members": {
-                "F": {
-                    "byteOffset": 0,
-                    "byte_size": 8,
-                    "type": "::test_a__record_a"
-                }
-            }
         }
     }
 }
