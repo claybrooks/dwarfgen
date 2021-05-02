@@ -19,7 +19,12 @@ CPP_STRUCTURES = [
     ('StructB', []),
     ('StructC', ['Namespace']),
     ('StructD', ['Namespace', 'InnerNamespace']),
-    ('StructE', [])
+    ('StructE', []),
+    ('StructF', []),
+    ('StructG', []),
+    ('StructH', []),
+    ('StructI', ['Namespace']),
+    ('StructJ', ['Namespace'])
 ]
 
 

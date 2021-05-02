@@ -154,10 +154,10 @@ def build_structure_type(die, namespace):
     if die.has_namespace():
         name = die.namespace + '::' + die.name()
     else:
-        name = '::' + die.name()
+        name = die.name()
 
     FLAT.structures[die.offset] = {
-        'name': die.name(),
+        'name': name,
         'size': die.byte_size(),
         'members': {}
     }
@@ -241,10 +241,6 @@ def build_subrange_type(die):
 def die_info_rec(die, namespace:Namespace):
     for child in die.iter_children():
         wrap_die(child)
-
-        if child.has_name() and child.name() == 'StructE':
-            i = 0
-            pass
 
         if child.is_structure_type():
             build_structure_type(child, namespace)
