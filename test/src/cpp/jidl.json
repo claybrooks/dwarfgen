@@ -137,6 +137,23 @@
                     "type": "array of Namespace::StructC"
                 }
             }
+        },
+        "StructK": {
+            "byteSize": 1,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "bitOffset": 4,
+                    "bitSize": 4,
+                    "type": "char"
+                },
+                "b": {
+                    "bitSize": 4,
+                    "byteOffset": 0,
+                    "bitOffset": 0,
+                    "type": "char"
+                }
+            }
         }
     }
 }

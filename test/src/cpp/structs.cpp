@@ -1,3 +1,4 @@
+
 typedef struct StructA {
     char a;
     int b;
@@ -50,6 +51,11 @@ namespace Namespace
     } StructJ;
 }
 
+typedef struct StructK {
+    char a: 4;
+    char b: 4;
+} StructK;
+
 StructA struct_a;
 StructB struct_b;
 Namespace::StructC struct_c;
@@ -60,3 +66,4 @@ StructG struct_g;
 StructH struct_h;
 Namespace::StructI struct_i;
 Namespace::StructJ struct_j;
+StructK struct_k;

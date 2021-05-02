@@ -15,7 +15,7 @@ class Member:
     def to_json(self, json):
         json['byteOffset'] = self.byte_offset
 
-        if self.bit_offset:
+        if self.bit_offset is not None:
             json['bitOffset'] = self.bit_offset
 
         if self.bit_size is not None:
