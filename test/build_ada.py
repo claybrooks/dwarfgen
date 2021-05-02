@@ -15,7 +15,9 @@ def make_shared(objects):
         "gcc",
         "-shared",
         "-o",
-        "bin/lib/libtest_ada.so"
+        "bin/lib/libtest_ada.so",
+            "-gnat12",
+            "-gdwarf-5"
     ] + objects)
 
     for obj in objects:
@@ -33,7 +35,7 @@ def make_shared(objects):
 
 def run():
     sources = [
-        'src/ada/records.ads'
+        'src/ada/records.ads',
     ]
 
     objects = []

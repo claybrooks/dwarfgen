@@ -8,11 +8,13 @@ class Namespace:
         self.structures = {}
 
     def add_and_return_namespace(self, name):
-        self.namespaces[name] = Namespace(name)
+        if name not in self.namespaces:
+            self.namespaces[name] = Namespace(name)
         return self.namespaces[name]
 
     def add_and_return_structure(self, name, size):
-        self.structures[name] = Structure(name, size)
+        if name not in self.structures:
+            self.structures[name] = Structure(name, size)
         return self.structures[name]
 
     def to_json(self, json):

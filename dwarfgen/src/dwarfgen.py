@@ -118,7 +118,11 @@ def process(files):
 
             die_info_rec(top_DIE, namespace)
 
-        resolveNamespace(namespace)
+
+        if DETECTED_LANGUAGE == 'ADA':
+            ada_disperse_structures(namespace)
+
+        resolve_namespace(namespace)
 
     return namespace
 
@@ -242,6 +246,20 @@ def die_info_rec(die, namespace:Namespace):
     for child in die.iter_children():
         wrap_die(child)
 
+        # we need to do special name processing for ada types because DW_TAG_namespace is not used.  Namespace can
+        # be inferred from names
+        '''
+        if DETECTED_LANGUAGE == 'ADA' and child.has_name():
+            if '__' in child.name():
+                tokens = child.name().split('__')
+                name = tokens[-1]
+                namespace = tokens[:-1]
+
+                new_namespace = namespace
+                for ns in namespace:
+                    new_namespace = new_namespace.add_and_return_namespace(ns)
+        '''
+
         if child.is_structure_type():
             build_structure_type(child, namespace)
         elif child.is_base_type():
@@ -281,7 +299,7 @@ def resolveMember(member):
     return type_offset
 
 
-def resolveStructure(structure):
+def resolve_structure(structure):
     for member in structure.members.values():
         type_offset = member.type_offset
         resolved_type = resolveMember(member)
@@ -303,11 +321,38 @@ def resolveStructure(structure):
             if member.bit_size is not None:
                 member.bit_size = None
 
+def ada_disperse_structures(namespace):
+    move_structures = []
+    for structure in namespace.structures.values():
+        tokens = structure.name.split('__')
+        name = tokens[-1]
+        namespaces = tokens[:-1]
 
-def resolveNamespace(namespace):
+        # add namespaces
+        ns = namespace
+        for n in namespaces:
+            ns = ns.add_and_return_namespace(n)
+
+        # we need to move this structure to the lower namespace
+        move_structures.append((name, namespaces))
+
+    for move in move_structures:
+        name, namespaces = move
+        name_key = '__'.join(namespaces) + '__' + name
+        struct = namespace.structures.pop(name_key)
+
+        ns = namespace
+        for n in namespaces:
+            ns = namespace.namespaces[n]
+
+        ns.structures[name] = struct
+
+
+def resolve_namespace(namespace):
 
     for structure in namespace.structures.values():
-        resolveStructure(structure)
+        resolve_structure(structure)
 
     for n in namespace.namespaces.values():
-        resolveNamespace(n)
+        resolve_namespace(n)
+

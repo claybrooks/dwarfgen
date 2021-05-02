@@ -1,56 +1,61 @@
 {
-    "namespaces": {},
-    "structures": {
-        "records__record_a": {
-            "byteSize": 8,
-            "members": {
-                "a": {
-                    "byteOffset": 0,
-                    "byteSize": 1,
-                    "type": "character"
+    "namespaces": {
+        "records": {
+            "namespaces": {},
+            "structures": {
+                "recorda": {
+                    "byteSize": 8,
+                    "members": {
+                        "a": {
+                            "byteOffset": 0,
+                            "byteSize": 1,
+                            "type": "character"
+                        },
+                        "b": {
+                            "byteOffset": 4,
+                            "byteSize": 4,
+                            "type": "integer"
+                        }
+                    }
                 },
-                "b": {
-                    "byteOffset": 4,
-                    "byteSize": 4,
-                    "type": "integer"
-                }
-            }
-        },
-        "records__record_b": {
-            "byteSize": 100,
-            "members": {
-                "a": {
-                    "byteOffset": 0,
+                "recordb": {
                     "byteSize": 100,
-                    "type": "array of character",
-                    "lowerBound": 1,
-                    "upperBound": 100
-                }
-            }
-        },
-        "records__record_c": {
-            "byteSize": 101,
-            "members": {
-                "a": {
-                    "byteOffset": 0,
+                    "members": {
+                        "a": {
+                            "byteOffset": 0,
+                            "byteSize": 100,
+                            "type": "array of character",
+                            "lowerBound": 1,
+                            "upperBound": 100
+                        }
+                    }
+                },
+                "recordc": {
                     "byteSize": 101,
-                    "type": "array of character",
-                    "lowerBound": 0,
-                    "upperBound": 100
-                }
-            }
-        },
-        "records__record_d": {
-            "byteSize": 90,
-            "members": {
-                "a": {
-                    "byteOffset": 0,
-                    "byteSize": 90,
-                    "type": "array of character",
-                    "lowerBound": 10,
-                    "upperBound": 100
+                    "members": {
+                        "a": {
+                            "byteOffset": 0,
+                            "byteSize": 101,
+                            "type": "array of character",
+                            "lowerBound": 0,
+                            "upperBound": 100
+                        }
+                    }
+                },
+                "recordd": {
+                    "byteSize": 91,
+                    "members": {
+                        "a": {
+                            "byteOffset": 0,
+                            "byteSize": 91,
+                            "type": "array of character",
+                            "lowerBound": 10,
+                            "upperBound": 100
+                        }
+                    }
                 }
             }
         }
-    }
+    },
+    "structures": {}
 }

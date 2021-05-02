@@ -14,32 +14,26 @@ import logging
 import json
 
 
-CPP_STRUCTURES = [
-    ('StructA', []),
-    ('StructB', []),
-    ('StructC', ['Namespace']),
-    ('StructD', ['Namespace', 'InnerNamespace']),
-    ('StructE', []),
-    ('StructF', []),
-    ('StructG', []),
-    ('StructH', []),
-    ('StructI', ['Namespace']),
-    ('StructJ', ['Namespace'])
-]
-
-
-ADA_STRUCTURES = [
-    ('records__record_a', []),
-    ('records__record_b', []),
-    ('records__record_c', []),
-]
-
-
 class TestDwarfGen(unittest.TestCase):
 
     @classmethod
     def get_test_name(cls, name, namespaces):
-        return 'test_{}_{}'.format('_'.join(namespaces), name)
+        if namespaces == []:
+            return 'test{}_{}'.format('_'.join(namespaces), name)
+        else:
+            return 'test_{}_{}'.format('_'.join(namespaces), name)
+
+    @classmethod
+    def get_tokens_from_name(cls, test_name):
+        tokens = test_name.split('_')[1:]
+        if len(tokens) == 1:
+            name = tokens[0]
+            namespace = []
+        else:
+            name = tokens[-1]
+            namespace = tokens[:-1]
+
+        return name, namespace
 
     @classmethod
     def get_tests(cls, structure_list):
@@ -49,17 +43,36 @@ class TestDwarfGen(unittest.TestCase):
         return tests
 
     @classmethod
-    def add_tests(cls, class_inst, structure_list):
+    def add_test(cls, class_inst, test_name):
+        name, namespace = cls.get_tokens_from_name(test_name)
+        setattr(
+            class_inst,
+            test_name,
+            lambda inst=class_inst, x=name, ns=namespace: inst.assert_struct_equal(x, ns)
+        )
 
-        for name, namespace in structure_list:
-            setattr(
-                class_inst,
-                cls.get_test_name(name, namespace),
-                lambda inst=class_inst, x=name, ns=list(namespace): inst.assert_struct_equal(x, ns)
-            )
+    @classmethod
+    def __test_structures_from_jidl(cls, jidl_json, structures, namespaces):
 
-    def __init__(self, test_name, structures, so_file, jidl_file, *args, **kwargs):
-        TestDwarfGen.add_tests(self, structures)
+        for struct in jidl_json['structures']:
+            structures.append((struct, list(namespaces)))
+
+        for ns in jidl_json['namespaces']:
+            new_namespace = list(namespaces) + [ns]
+            cls.__test_structures_from_jidl(jidl_json['namespaces'][ns], structures, new_namespace)
+
+    @classmethod
+    def test_structures_from_jidl(cls, jidl_path):
+        with open(jidl_path, 'r') as f:
+            jidl_json = json.load(f)
+
+        structures = []
+        namespaces = []
+        cls.__test_structures_from_jidl(jidl_json, structures, namespaces)
+        return structures
+
+    def __init__(self, test_name, so_file, jidl_file, *args, **kwargs):
+        TestDwarfGen.add_test(self, test_name)
         self.so_file = so_file
         self.jidl_file = jidl_file
         self.setup_done = False
@@ -106,10 +119,10 @@ class TestDwarfGen(unittest.TestCase):
         self.assertEqual(calculated_struct, expected_struct)
 
 
-def add_to_suite(test_class, structures, so_file, jidle_file, loader, suite):
-    names = test_class.get_tests(structures)
+def add_to_suite(test_class, so_file, jidl_file, loader, suite):
+    names = test_class.get_tests(test_class.test_structures_from_jidl(jidl_file))
     for name in names:
-        suite.addTest(test_class(name, structures, so_file, jidle_file))
+        suite.addTest(test_class(name, so_file, jidl_file))
 
 
 if __name__ == '__main__':
@@ -117,8 +130,8 @@ if __name__ == '__main__':
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
 
-    add_to_suite(TestDwarfGen, CPP_STRUCTURES, './bin/lib/libtest_cpp.so', './src/cpp/jidl.json', loader, suite)
-    add_to_suite(TestDwarfGen, ADA_STRUCTURES, './bin/lib/libtest_ada.so', './src/ada/jidl.json', loader, suite)
+    add_to_suite(TestDwarfGen, './bin/lib/libtest_cpp.so', './src/cpp/jidl.json', loader, suite)
+    add_to_suite(TestDwarfGen, './bin/lib/libtest_ada.so', './src/ada/jidl.json', loader, suite)
 
     result = unittest.TextTestRunner().run(suite)
     sys.exit(not result.wasSuccessful())

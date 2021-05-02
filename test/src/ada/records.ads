@@ -1,35 +1,39 @@
 package Records is
 
-    type Record_A is record
+    type RecordA is record
         a: Character;
         b: Integer;
     end record;
 
-    type Record_B is record
+    type RecordB is record
         a: String(1..100);
     end record;
 
-    type Record_C is record
+    type RecordC is record
         a: String(0..100);
     end record;
 
-    type Record_D is record
+    type RecordD is record
         a: String(10..100);
     end record;
 
-    --type Record_C is record
+    type RecordE is record
+        a: String(10..100);
+    end record;
+
+    --type RecordC is record
     --    a : Character;
     --    b : Integer;
     --end record;
 
-    --for Record_C use record
+    --for RecordC use record
     --    a at 0 range 0 .. 3;
     --    b at 0 range 4 .. 7;
     --end record;
 
-    a : Record_A;
-    b : Record_B;
-    c : Record_C;
-    d : Record_D;
-
+    a : RecordA;
+    b : RecordB;
+    c : RecordC;
+    d : RecordD;
+    e : RecordE;
 end Records;
