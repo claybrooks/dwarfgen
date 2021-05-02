@@ -119,6 +119,9 @@ def process(files):
             die_info_rec(top_DIE, namespace)
 
 
+        # Ada does not use DW_TAG_namespace like C++, so namespace inference comes from DW_AT_name of types
+        # This function moves structures around and creates namespaces to make it look identical to what c++
+        # processing would produce prior to calling "resolve_namespace".
         if DETECTED_LANGUAGE == 'ADA':
             ada_disperse_structures(namespace)
 
