@@ -23,30 +23,62 @@ class FlatStructure:
 
 def wrap_die(die):
 
-    setattr(die, "has_artificial",  lambda x=die: 'DW_AT_artificial' in x.attributes)
-    setattr(die, "artificial",      lambda x=die: x.attributes['DW_AT_artificial'].value)
+    # 'DW_AT_*'
+    attributes = [
+        "byte_size",
+        "encoding",
+        "data_member_location",
+        "type",
+        "bit_size",
+        "bit_offset",
+        "sibling",
+        "upper_bound",
+        "lower_bound",
+        "artificial",
+    ]
+
+    for attr in attributes:
+        setattr(die, 'has_'+attr,   lambda x=die, a=attr: 'DW_AT_'+a in x.attributes)
+        setattr(die, attr,          lambda x=die, a=attr: x.attributes['DW_AT_'+a].value)
+
+    # 'DW_AT_*' but also decode .value
+    decode_attributes = [
+        'producer',
+        'name'
+    ]
+
+    for attr in decode_attributes:
+        setattr(die, 'has_'+attr,   lambda x=die, a=attr: 'DW_AT_'+a in x.attributes)
+        setattr(die, attr,          lambda x=die, a=attr: x.attributes['DW_AT_'+a].value.decode())
+
+    # 'DW_TAG_*'
+    tag_types = [
+        'structure_type',
+        'member',
+        'base_type',
+        'typedef',
+        'sibling',
+        'array_type',
+        'subrange_type',
+        'namespace',
+        'variable',
+    ]
+
+    for tag_type in tag_types:
+        setattr(die, 'is_'+tag_type, lambda x=die, tag=tag_type: x.tag == 'DW_TAG_'+tag)
+
+    # add a special one for artificial
     setattr(die, "is_artificial",   lambda x=die: x.has_artificial() and x.artificial() == 1)
 
-    setattr(die, "has_byte_size",   lambda x=die: 'DW_AT_byte_size' in x.attributes)
-    setattr(die, "has_name",        lambda x=die: 'DW_AT_name' in x.attributes)
-    setattr(die, "has_type",        lambda x=die: 'DW_AT_type' in x.attributes)
-    setattr(die, "has_bit_size",    lambda x=die: 'DW_AT_bit_size' in x.attributes)
-    setattr(die, "has_bit_offset",  lambda x=die: 'DW_AT_bit_offset' in x.attributes)
-    setattr(die, "has_upper_bound", lambda x=die: 'DW_AT_upper_bound' in x.attributes)
-    setattr(die, "has_lower_bound", lambda x=die: 'DW_AT_lower_bound' in x.attributes)
+    # add a special one for lower_bound, the default depends on the language
+    setattr(
+        die,
+        "lower_bound",
+        lambda x=die: x.attributes['DW_AT_lower_bound'].value if x.has_lower_bound() else DEFAULT_LOWER_BOUND[DETECTED_LANGUAGE]
+    )
+
+    # add a special one for namespace
     setattr(die, "has_namespace",   lambda x=die: hasattr(x, 'namespace'))
-
-    setattr(die, "byte_size",       lambda x=die: x.attributes['DW_AT_byte_size'].value)
-    setattr(die, "encoding",        lambda x=die: x.attributes['DW_AT_encoding'].value)
-    setattr(die, "name",            lambda x=die: x.attributes['DW_AT_name'].value.decode())
-    setattr(die, "member_location", lambda x=die: x.attributes['DW_AT_data_member_location'].value)
-    setattr(die, "type",            lambda x=die: x.attributes['DW_AT_type'].value)
-    setattr(die, "bit_size",        lambda x=die: x.attributes['DW_AT_bit_size'].value)
-    setattr(die, "bit_offset",      lambda x=die: x.attributes['DW_AT_bit_offset'].value)
-    setattr(die, "sibling",         lambda x=die: x.attributes['DW_AT_sibling'].value)
-    setattr(die, "upper_bound",     lambda x=die: x.attributes['DW_AT_upper_bound'].value)
-    setattr(die, "lower_bound",     lambda x=die: x.attributes['DW_AT_lower_bound'].value if x.has_lower_bound() else DEFAULT_LOWER_BOUND[DETECTED_LANGUAGE])
-
 
 FLAT = None
 DETECTED_LANGUAGE = None
@@ -73,7 +105,9 @@ def process(files):
 
         for CU in dwarfinfo.iter_CUs():
             top_DIE = CU.get_top_DIE()
-            producer = top_DIE.attributes['DW_AT_producer'].value.decode()
+            wrap_die(top_DIE)
+
+            producer = top_DIE.producer()
             if 'C++' in producer:
                 DETECTED_LANGUAGE = 'C++'
             elif 'Ada' in producer:
@@ -131,17 +165,17 @@ def build_structure_type(die, namespace):
 
     for child in die.iter_children():
         wrap_die(child)
-        if child.tag == 'DW_TAG_member':
+        if child.is_member():
 
             _member = structure.add_and_return_member(
-                child.name(), child.type(), child.member_location()
+                child.name(), child.type(), child.data_member_location()
             )
 
             members[name] = {}
             member = members[name]
 
             member['name'] = child.name()
-            member['byteOffset'] = child.member_location()
+            member['byteOffset'] = child.data_member_location()
             member['typeOffset'] = child.type()
 
             if child.has_bit_size():
@@ -154,7 +188,7 @@ def build_structure_type(die, namespace):
                 member['DW_AT_bit_offset'] = value
                 _member.bit_offset = value
 
-        elif child.tag == 'DW_AT_structure':
+        elif child.is_structure_type():
             members[name] = child.type()
 
 
@@ -208,18 +242,22 @@ def die_info_rec(die, namespace:Namespace):
     for child in die.iter_children():
         wrap_die(child)
 
-        if child.tag == 'DW_TAG_structure_type':
+        if child.has_name() and child.name() == 'StructE':
+            i = 0
+            pass
+
+        if child.is_structure_type():
             build_structure_type(child, namespace)
-        elif child.tag == 'DW_TAG_base_type':
+        elif child.is_base_type():
             build_base_type(child)
-        elif child.tag == 'DW_TAG_typedef':
+        elif child.is_typedef():
             build_type_def(child)
-        elif child.tag == 'DW_TAG_array_type':
+        elif child.is_array_type():
             build_array_type(child)
-        elif child.tag == 'DW_TAG_subrange_type':
+        elif child.is_subrange_type():
             build_subrange_type(child)
-        elif child.tag == 'DW_TAG_namespace':
-            namespace = namespace.add_and_return_namespace(child.name())
+        elif child.is_namespace():
+            new_namespace = namespace.add_and_return_namespace(child.name())
 
             # inject ".namespace" attribute on all children
             for cchild in child.iter_children():
@@ -229,7 +267,10 @@ def die_info_rec(die, namespace:Namespace):
                 else:
                     cchild.namespace = curr_ns + '::' + child.name()
 
-        die_info_rec(child, namespace)
+            die_info_rec(child, new_namespace)
+
+        if not child.is_namespace():
+            die_info_rec(child, namespace)
 
 
 def resolveMember(member):

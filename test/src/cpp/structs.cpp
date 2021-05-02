@@ -22,7 +22,13 @@ namespace Namespace
     }
 }
 
+typedef struct StructE {
+    StructA a;
+    StructB b;
+} StructE;
+
 StructA struct_a;
 StructB struct_b;
 Namespace::StructC struct_c;
 Namespace::InnerNamespace::StructD struct_d;
+StructE struct_e;

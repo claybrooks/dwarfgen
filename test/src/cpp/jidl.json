@@ -66,6 +66,21 @@
                     "upperBound": 99
                 }
             }
+        },
+        "StructE": {
+            "byteSize": 108,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 8,
+                    "type": "StructA"
+                },
+                "b": {
+                    "byteOffset": 8,
+                    "byteSize": 100,
+                    "type": "StructB"
+                }
+            }
         }
     }
 }

@@ -1,10 +1,12 @@
 import sys
 import os
 
+
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 DWARF_GEN_DIR = os.path.realpath(os.path.join(TEST_DIR, '..'))
 if DWARF_GEN_DIR not in sys.path:
     sys.path.append(DWARF_GEN_DIR)
+
 
 import unittest
 import dwarfgen
@@ -16,8 +18,10 @@ CPP_STRUCTURES = [
     ('StructA', []),
     ('StructB', []),
     ('StructC', ['Namespace']),
-    ('StructD', ['Namespace', 'InnerNamespace'])
+    ('StructD', ['Namespace', 'InnerNamespace']),
+    ('StructE', [])
 ]
+
 
 ADA_STRUCTURES = [
     ('records__record_a', []),
@@ -53,15 +57,16 @@ class TestDwarfGen(unittest.TestCase):
         TestDwarfGen.add_tests(self, structures)
         self.so_file = so_file
         self.jidl_file = jidl_file
+        self.setup_done = False
 
         super().__init__(test_name, *args, **kwargs)
 
     def setUp(self):
         super().setUp()
 
-        self.ns = dwarfgen.process([self.so_file])
+        ns = dwarfgen.process([self.so_file])
         self.calculated_jidl = {}
-        self.ns.to_json(self.calculated_jidl)
+        ns.to_json(self.calculated_jidl)
 
         with open(self.jidl_file, 'r') as f:
             self.expected_jidl = json.load(f)
@@ -73,9 +78,15 @@ class TestDwarfGen(unittest.TestCase):
         json_ptr = jidl
 
         for ns in namespace:
-            json_ptr = json_ptr['namespaces'][ns]
+            try:
+                json_ptr = json_ptr['namespaces'][ns]
+            except KeyError:
+                self.fail("Namespace {} doesn't exist".format(ns))
 
-        return json_ptr['structures'][structure_name]
+        try:
+            return json_ptr['structures'][structure_name]
+        except KeyError:
+            self.fail("Structure {} doesn't exist in \n{}".format(structure_name, json.dumps(jidl, indent=4)))
 
     def __get_calculated_structure(self, structure_name, namespace=None):
         return self.__get_structure(self.calculated_jidl, structure_name, namespace)
@@ -95,6 +106,7 @@ def add_to_suite(test_class, structures, so_file, jidle_file, loader, suite):
     for name in names:
         suite.addTest(test_class(name, structures, so_file, jidle_file))
 
+
 if __name__ == '__main__':
 
     loader = unittest.TestLoader()
@@ -105,4 +117,3 @@ if __name__ == '__main__':
 
     result = unittest.TextTestRunner().run(suite)
     sys.exit(not result.wasSuccessful())
-
