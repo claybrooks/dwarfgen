@@ -78,6 +78,7 @@ class TestDwarfGen(unittest.TestCase):
         self.setup_done = False
 
         super().__init__(test_name, *args, **kwargs)
+        self.maxDiff = None
 
     def setUp(self):
         super().setUp()
@@ -116,7 +117,11 @@ class TestDwarfGen(unittest.TestCase):
         calculated_struct = self.__get_calculated_structure(structure_name, namespace)
         expected_struct = self.__get_expected_structure(structure_name, namespace)
 
-        self.assertEqual(calculated_struct, expected_struct)
+        self.assertEqual(
+            calculated_struct,
+            expected_struct,
+            msg="{}\nExpected\n{}\nCalculated\n{}".format(structure_name, json.dumps(expected_struct, indent=4), json.dumps(calculated_struct, indent=4))
+        )
 
 
 def add_to_suite(test_class, so_file, jidl_file, loader, suite):

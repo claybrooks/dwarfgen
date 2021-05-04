@@ -13,7 +13,8 @@
                                     "byteSize": 100,
                                     "type": "array of char",
                                     "lowerBound": 0,
-                                    "upperBound": 99
+                                    "upperBound": 99,
+                                    "accessibility": "public"
                                 }
                             }
                         }
@@ -27,12 +28,14 @@
                         "a": {
                             "byteOffset": 0,
                             "byteSize": 1,
-                            "type": "char"
+                            "type": "char",
+                            "accessibility": "public"
                         },
                         "b": {
                             "byteOffset": 4,
                             "byteSize": 4,
-                            "type": "int"
+                            "type": "int",
+                            "accessibility": "public"
                         }
                     }
                 },
@@ -42,7 +45,8 @@
                         "a": {
                             "byteOffset": 0,
                             "byteSize": 100,
-                            "type": "Namespace::InnerNamespace::StructD"
+                            "type": "Namespace::InnerNamespace::StructD",
+                            "accessibility": "public"
                         }
                     }
                 },
@@ -54,7 +58,8 @@
                             "byteSize": 200,
                             "lowerBound": 0,
                             "upperBound": 1,
-                            "type": "array of Namespace::InnerNamespace::StructD"
+                            "type": "array of Namespace::InnerNamespace::StructD",
+                            "accessibility": "public"
                         }
                     }
                 }
@@ -62,18 +67,94 @@
         }
     },
     "structures": {
+        "ClassA": {
+            "byteSize": 3,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 1,
+                    "type": "char",
+                    "accessibility": "private"
+                },
+                "b": {
+                    "byteOffset": 1,
+                    "byteSize": 1,
+                    "type": "char",
+                    "accessibility": "protected"
+                },
+                "c": {
+                    "byteOffset": 2,
+                    "byteSize": 1,
+                    "type": "char",
+                    "accessibility": "public"
+                }
+            }
+        },
+        "ClassB": {
+            "byteSize": 1,
+            "members": {
+                "b": {
+                    "byteOffset": 0,
+                    "byteSize": 1,
+                    "type": "char",
+                    "accessibility": "public"
+                }
+            },
+            "staticMembers": {
+                "a": {
+                    "type": "char",
+                    "accessibility": "public"
+                }
+            }
+        },
+        "ClassC": {
+            "byteSize": 1,
+            "staticMembers": {
+                "a": {
+                    "type": "ClassA",
+                    "accessibility": "private"
+                },
+                "b": {
+                    "type": "ClassB",
+                    "accessibility": "protected"
+                },
+                "c": {
+                    "type": "int",
+                    "accessibility": "public"
+                }
+            }
+        },
+        "ClassD": {
+            "byteSize": 100,
+            "members" :{
+                "b": {
+                    "byteOffset": 0,
+                    "byteSize": 100,
+                    "type": "Namespace::InnerNamespace::StructD",
+                    "accessibility": "public"
+                }
+            },
+            "staticMembers": {
+                "a": {
+                    "type": "Namespace::InnerNamespace::StructD",
+                    "accessibility": "protected"
+                }
+            }
+        },
         "StructA": {
             "byteSize": 8,
             "members": {
                 "a": {
                     "byteOffset": 0,
                     "byteSize": 1,
-                    "type": "char"
+                    "type": "char",
+                    "accessibility": "public"
                 },
                 "b": {
                     "byteOffset": 4,
                     "byteSize": 4,
-                    "type": "int"
+                    "type": "int",
+                    "accessibility": "public"
                 }
             }
         },
@@ -85,7 +166,8 @@
                     "byteSize": 100,
                     "type": "array of char",
                     "lowerBound": 0,
-                    "upperBound": 99
+                    "upperBound": 99,
+                    "accessibility": "public"
                 }
             }
         },
@@ -95,12 +177,14 @@
                 "a": {
                     "byteOffset": 0,
                     "byteSize": 8,
-                    "type": "StructA"
+                    "type": "StructA",
+                    "accessibility": "public"
                 },
                 "b": {
                     "byteOffset": 8,
                     "byteSize": 100,
-                    "type": "StructB"
+                    "type": "StructB",
+                    "accessibility": "public"
                 }
             }
         },
@@ -112,7 +196,8 @@
                     "byteSize": 80,
                     "lowerBound": 0,
                     "upperBound": 9,
-                    "type": "array of StructA"
+                    "type": "array of StructA",
+                    "accessibility": "public"
                 }
             }
         },
@@ -122,7 +207,8 @@
                 "a": {
                     "byteOffset": 0,
                     "byteSize": 8,
-                    "type": "Namespace::StructC"
+                    "type": "Namespace::StructC",
+                    "accessibility": "public"
                 }
             }
         },
@@ -134,7 +220,8 @@
                     "lowerBound": 0,
                     "upperBound": 9,
                     "byteSize": 80,
-                    "type": "array of Namespace::StructC"
+                    "type": "array of Namespace::StructC",
+                    "accessibility": "public"
                 }
             }
         },
@@ -145,13 +232,55 @@
                     "byteOffset": 0,
                     "bitOffset": 4,
                     "bitSize": 4,
-                    "type": "char"
+                    "type": "char",
+                    "accessibility": "public"
                 },
                 "b": {
                     "bitSize": 4,
                     "byteOffset": 0,
                     "bitOffset": 0,
+                    "type": "char",
+                    "accessibility": "public"
+                }
+            }
+        },
+        "StructL": {
+            "byteSize": 3,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 1,
+                    "accessibility": "private",
                     "type": "char"
+                },
+                "b": {
+                    "byteOffset": 1,
+                    "byteSize": 1,
+                    "accessibility": "protected",
+                    "type": "char"
+                },
+                "c": {
+                    "byteOffset": 2,
+                    "byteSize": 1,
+                    "type": "char",
+                    "accessibility": "public"
+                }
+            }
+        },
+        "StructM<char, int>": {
+            "byteSize": 8,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 1,
+                    "type": "char",
+                    "accessibility": "public"
+                },
+                "b": {
+                    "byteOffset": 4,
+                    "byteSize": 4,
+                    "type": "int",
+                    "accessibility": "public"
                 }
             }
         }

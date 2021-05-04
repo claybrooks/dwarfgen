@@ -9,12 +9,14 @@
                         "a": {
                             "byteOffset": 0,
                             "byteSize": 1,
-                            "type": "character"
+                            "type": "character",
+                            "accessibility": "public"
                         },
                         "b": {
                             "byteOffset": 4,
                             "byteSize": 4,
-                            "type": "integer"
+                            "type": "integer",
+                            "accessibility": "public"
                         }
                     }
                 },
@@ -26,7 +28,8 @@
                             "byteSize": 100,
                             "type": "array of character",
                             "lowerBound": 1,
-                            "upperBound": 100
+                            "upperBound": 100,
+                            "accessibility": "public"
                         }
                     }
                 },
@@ -38,7 +41,8 @@
                             "byteSize": 101,
                             "type": "array of character",
                             "lowerBound": 0,
-                            "upperBound": 100
+                            "upperBound": 100,
+                            "accessibility": "public"
                         }
                     }
                 },
@@ -50,7 +54,8 @@
                             "byteSize": 91,
                             "type": "array of character",
                             "lowerBound": 10,
-                            "upperBound": 100
+                            "upperBound": 100,
+                            "accessibility": "public"
                         }
                     }
                 }

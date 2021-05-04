@@ -56,6 +56,64 @@ typedef struct StructK {
     char b: 4;
 } StructK;
 
+typedef struct StructL {
+private:
+    char a;
+protected:
+    char b;
+public:
+    char c;
+} StructL;
+
+template<typename T, typename Q>
+struct StructM {
+    T a;
+    Q b;
+};
+
+class ClassA
+{
+    char a;
+protected:
+    char b;
+public:
+    char c;
+};
+
+class ClassB
+{
+public:
+    static char a;
+    char b;
+};
+
+class ClassC
+{
+    static ClassA a;
+protected:
+    static ClassB b;
+public:
+    static int c;
+};
+
+class ClassD
+{
+protected:
+    static Namespace::InnerNamespace::StructD a;
+public:
+    Namespace::InnerNamespace::StructD b;
+};
+
+typedef struct StructN {
+    char a;
+    int b;
+} StructN;
+
+typedef struct StructNDerived: public StructN {
+    char c;
+    int d;
+} StructNDerived;
+
 StructA struct_a;
 StructB struct_b;
 Namespace::StructC struct_c;
@@ -67,3 +125,11 @@ StructH struct_h;
 Namespace::StructI struct_i;
 Namespace::StructJ struct_j;
 StructK struct_k;
+StructL struct_l;
+StructM<char, int> struct_m;
+StructNDerived struct_n_derived;
+
+ClassA class_a;
+ClassB class_b;
+ClassC class_c;
+ClassD class_d;

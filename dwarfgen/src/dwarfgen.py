@@ -21,6 +21,12 @@ class FlatStructure:
         self.type_defs = {}
 
 
+def data_member_location(val):
+    if isinstance(val, list):
+        return val[1]
+    return val
+
+
 def wrap_die(die):
 
     # 'DW_AT_*'
@@ -35,11 +41,13 @@ def wrap_die(die):
         "upper_bound",
         "lower_bound",
         "artificial",
+        "accessibility",
+        "external",
     ]
 
     for attr in attributes:
         setattr(die, 'has_'+attr,   lambda x=die, a=attr: 'DW_AT_'+a in x.attributes)
-        setattr(die, attr,          lambda x=die, a=attr: x.attributes['DW_AT_'+a].value)
+        setattr(die, attr,          lambda x=die, a=attr: data_member_location(x.attributes['DW_AT_'+a].value))
 
     # 'DW_AT_*' but also decode .value
     decode_attributes = [
@@ -54,6 +62,7 @@ def wrap_die(die):
     # 'DW_TAG_*'
     tag_types = [
         'structure_type',
+        'class_type',
         'member',
         'base_type',
         'typedef',
@@ -62,6 +71,8 @@ def wrap_die(die):
         'subrange_type',
         'namespace',
         'variable',
+        "template_type_param",
+        "inheritance",
     ]
 
     for tag_type in tag_types:
@@ -79,6 +90,9 @@ def wrap_die(die):
 
     # add a special one for namespace
     setattr(die, "has_namespace",   lambda x=die: hasattr(x, 'namespace'))
+
+    # add a single member function to check all structure like types
+    setattr(die, 'is_structure_like', lambda x=die: x.is_structure_type() or x.is_class_type())
 
 FLAT = None
 DETECTED_LANGUAGE = None
@@ -172,17 +186,43 @@ def build_structure_type(die, namespace):
 
     for child in die.iter_children():
         wrap_die(child)
-        if child.is_member():
+        if child.is_template_type_param():
+            #TODO implement some sort of template parameters
+            pass
+        elif child.is_inheritance():
+            #TODO implement some sort of inheritance
+            pass
+        elif child.is_member():
 
             _member = structure.add_and_return_member(
-                child.name(), child.type(), child.data_member_location()
+                child.name(), child.type()
             )
+
+            if child.has_accessibility():
+                _member.accessibility = child.accessibility()
+                if _member.accessibility == 1:
+                    _member.accessibility = "public"
+                elif _member.accessibility == 2:
+                    _member.accessibility = "protected"
+                else:
+                    _member.accessibility = "private"
+            else:
+                if die.is_structure_type():
+                    _member.accessibility = "public"
+                else:
+                    _member.accessibility = "private"
 
             members[name] = {}
             member = members[name]
 
+            # based on dwarf spec, if a member of structure is "external", then it's a static member of that class/struct
+            if child.has_external():
+                _member.is_static = True
+            else:
+                _member.byte_offset = child.data_member_location()
+                member['byteOffset'] = child.data_member_location()
+
             member['name'] = child.name()
-            member['byteOffset'] = child.data_member_location()
             member['typeOffset'] = child.type()
 
             if child.has_bit_size():
@@ -263,7 +303,7 @@ def die_info_rec(die, namespace:Namespace):
                     new_namespace = new_namespace.add_and_return_namespace(ns)
         '''
 
-        if child.is_structure_type():
+        if child.is_structure_like():
             build_structure_type(child, namespace)
         elif child.is_base_type():
             build_base_type(child)
