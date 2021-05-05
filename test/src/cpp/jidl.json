@@ -283,6 +283,129 @@
                     "accessibility": "public"
                 }
             }
+        },
+        "StructNDerived": {
+            "byteSize": 16,
+            "baseStructures": {
+                "StructN": {
+                    "byteOffset": 0,
+                    "accessibility": "public"
+                }
+            },
+            "members": {
+                "c": {
+                    "byteOffset": 8,
+                    "byteSize": 1,
+                    "type": "char",
+                    "accessibility": "public"
+                },
+                "d": {
+                    "byteOffset": 12,
+                    "byteSize": 4,
+                    "type": "int",
+                    "accessibility": "public"
+                }
+            }
+        },
+        "StructNDerivedPrivate": {
+            "byteSize": 16,
+            "baseStructures": {
+                "StructN": {
+                    "byteOffset": 0,
+                    "accessibility": "private"
+                }
+            },
+            "members": {
+                "c": {
+                    "byteOffset": 8,
+                    "byteSize": 1,
+                    "type": "char",
+                    "accessibility": "public"
+                },
+                "d": {
+                    "byteOffset": 12,
+                    "byteSize": 4,
+                    "type": "int",
+                    "accessibility": "public"
+                }
+            }
+        },
+        "StructNDerivedProtected": {
+            "byteSize": 16,
+            "baseStructures": {
+                "StructN": {
+                    "byteOffset": 0,
+                    "accessibility": "protected"
+                }
+            },
+            "members": {
+                "c": {
+                    "byteOffset": 8,
+                    "byteSize": 1,
+                    "type": "char",
+                    "accessibility": "public"
+                },
+                "d": {
+                    "byteOffset": 12,
+                    "byteSize": 4,
+                    "type": "int",
+                    "accessibility": "public"
+                }
+            }
+        },
+        "StructNMultiDerived": {
+            "byteSize": 24,
+            "baseStructures": {
+                "StructN": {
+                    "byteOffset": 0,
+                    "accessibility": "public"
+                },
+                "StructN_2": {
+                    "byteOffset": 8,
+                    "accessibility": "public"
+                }
+            },
+            "members": {
+                "c": {
+                    "byteOffset": 16,
+                    "byteSize": 1,
+                    "type": "char",
+                    "accessibility": "public"
+                },
+                "d": {
+                    "byteOffset": 20,
+                    "byteSize": 4,
+                    "type": "int",
+                    "accessibility": "public"
+                }
+            }
+        },
+        "StructNMultiDerivedMixAccessibility": {
+            "byteSize": 24,
+            "baseStructures": {
+                "StructN": {
+                    "byteOffset": 0,
+                    "accessibility": "public"
+                },
+                "StructN_2": {
+                    "byteOffset": 8,
+                    "accessibility": "private"
+                }
+            },
+            "members": {
+                "c": {
+                    "byteOffset": 16,
+                    "byteSize": 1,
+                    "type": "char",
+                    "accessibility": "public"
+                },
+                "d": {
+                    "byteOffset": 20,
+                    "byteSize": 4,
+                    "type": "int",
+                    "accessibility": "public"
+                }
+            }
         }
     }
 }

@@ -62,33 +62,23 @@ class TestDwarfGen(unittest.TestCase):
             cls.__test_structures_from_jidl(jidl_json['namespaces'][ns], structures, new_namespace)
 
     @classmethod
-    def test_structures_from_jidl(cls, jidl_path):
-        with open(jidl_path, 'r') as f:
-            jidl_json = json.load(f)
-
+    def test_structures_from_jidl(cls, jidl_json):
         structures = []
         namespaces = []
         cls.__test_structures_from_jidl(jidl_json, structures, namespaces)
         return structures
 
-    def __init__(self, test_name, so_file, jidl_file, *args, **kwargs):
+    def __init__(self, test_name, so_file, calculated_jidl, expected_jidl, *args, **kwargs):
         TestDwarfGen.add_test(self, test_name)
         self.so_file = so_file
-        self.jidl_file = jidl_file
-        self.setup_done = False
+        self.calculated_jidl = calculated_jidl
+        self.expected_jidl = expected_jidl
 
         super().__init__(test_name, *args, **kwargs)
         self.maxDiff = None
 
     def setUp(self):
         super().setUp()
-
-        ns = dwarfgen.process([self.so_file])
-        self.calculated_jidl = {}
-        ns.to_json(self.calculated_jidl)
-
-        with open(self.jidl_file, 'r') as f:
-            self.expected_jidl = json.load(f)
 
     def tearDown(self):
         super().tearDown()
@@ -125,9 +115,17 @@ class TestDwarfGen(unittest.TestCase):
 
 
 def add_to_suite(test_class, so_file, jidl_file, loader, suite):
-    names = test_class.get_tests(test_class.test_structures_from_jidl(jidl_file))
+
+    ns = dwarfgen.process([so_file])
+    calculated_jidl = {}
+    ns.to_json(calculated_jidl)
+
+    with open(jidl_file, 'r') as f:
+        expected_jidl = json.load(f)
+
+    names = test_class.get_tests(test_class.test_structures_from_jidl(expected_jidl))
     for name in names:
-        suite.addTest(test_class(name, so_file, jidl_file))
+        suite.addTest(test_class(name, so_file, calculated_jidl, expected_jidl))
 
 
 if __name__ == '__main__':

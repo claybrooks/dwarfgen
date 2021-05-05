@@ -2,7 +2,7 @@ import json
 
 class Member:
     def __init__(self, name, type_offset):
-        self.name = name
+        self.name           = name
         self.type_offset    = type_offset
         self.byte_offset    = None
         self.bit_offset     = None

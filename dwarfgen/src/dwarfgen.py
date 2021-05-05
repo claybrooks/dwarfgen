@@ -40,6 +40,13 @@ def v2_accessibility_policy(die):
 
     return ACCESSIBILITY[die.accessibility()]
 
+def v2_inheritance_accessibility_policy(die):
+
+    if not die.has_accessibility():
+        return 'private'
+
+    return ACCESSIBILITY[die.accessibility()]
+
 def default_accessibility_policy(die):
 
     if not die.has_accessibility():
@@ -88,6 +95,7 @@ def default_structure_member_data_policy(die):
         'name': die.name(),
         'typeOffset': die.type()
     }
+
 def default_static_structure_member_data_policy(die, _member):
     _member.is_static = True
     return STRUCTURE_MEMBER_DATA_POLICY(die)
@@ -263,15 +271,19 @@ SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY = default_subrange_data_for_array_parent_p
 NAMESPACE_APPLICATION_POLICY = default_namespace_application_policy
 
 ACCESSIBILITY_POLICY = default_accessibility_policy
+INHERITANCE_ACCESSIBILITY_POLICY = default_accessibility_policy
+
 NAME_POLICY = default_name_policy
 
 
 def apply_policies(version, language):
     global ACCESSIBILITY_POLICY
     global SUBRANGE_LOWERBOUND_POLICY
+    global INHERITANCE_ACCESSIBILITY_POLICY
 
     if version == 2:
         ACCESSIBILITY_POLICY = v2_accessibility_policy
+        INHERITANCE_ACCESSIBILITY_POLICY = v2_inheritance_accessibility_policy
 
     if language == 'ADA':
         SUBRANGE_LOWERBOUND_POLICY = one_indexed_subrange_lowerbound_policy
@@ -342,8 +354,7 @@ def build_structure_child(structure, members, die):
         #TODO implement some sort of template parameters
         pass
     elif die.is_inheritance():
-        #TODO implement some sort of inheritance
-        pass
+        structure.add_base_structure(die.type(), INHERITANCE_ACCESSIBILITY_POLICY(die), die.data_member_location())
     elif die.is_member():
         if not VALID_STRUCTURE_MEMBER_POLICY(die):
             return
@@ -417,32 +428,45 @@ def die_info_rec(die, namespace:Namespace):
         if not child.is_namespace():
             die_info_rec(child, namespace)
 
-def resolve_member(member):
-    type_offset = member.type_offset
 
-    if type_offset in FLAT.array_types:
-        type_offset = FLAT.array_types[type_offset]['type']
+def resolve_type_offset(type_offset, flat):
+    if type_offset in flat.array_types:
+        type_offset = flat.array_types[type_offset]['type']
 
-    if type_offset in FLAT.subrange_types:
-        type_offset = FLAT.subrange_types[type_offset]['type']
+    if type_offset in flat.subrange_types:
+        type_offset = flat.subrange_types[type_offset]['type']
 
-    while type_offset in FLAT.type_defs:
-        type_offset = FLAT.type_defs[type_offset]['type']
+    while type_offset in flat.type_defs:
+        type_offset = flat.type_defs[type_offset]['type']
 
     return type_offset
 
+def resolve_type(type_offset, flat):
+    if type_offset in FLAT.base_types:
+        return FLAT.base_types[type_offset]
+    elif type_offset in FLAT.structures:
+        return FLAT.structures[type_offset]
+    return None
+
+def resolve_type_offset_name(type_offset, flat):
+    return resolve_type(type_offset, flat)['name']
+
+def resolve_type_offset_size(type_offset, flat):
+    return resolve_type(type_offset, flat)['size']
+
 def resolve_structure(structure):
+
+    for base_structure in structure.base_structures.values():
+        resolved_type = resolve_type_offset(base_structure.type_offset, FLAT)
+        base_structure.type = resolve_type_offset_name(resolved_type, FLAT)
+
     for member in structure.members.values():
         type_offset = member.type_offset
-        resolved_type = resolve_member(member)
-        if resolved_type in FLAT.base_types:
-            if member.bit_size is None:
-                member.byte_size = FLAT.base_types[resolved_type]['size']
-            member.type_str = FLAT.base_types[resolved_type]['name']
-        elif resolved_type in FLAT.structures:
-            if member.bit_size is None:
-                member.byte_size = FLAT.structures[resolved_type]['size']
-            member.type_str = FLAT.structures[resolved_type]['name']
+        resolved_type = resolve_type_offset(type_offset, FLAT)
+
+        member.type_str = resolve_type_offset_name(resolved_type, FLAT)
+        if member.bit_size is None:
+            member.byte_size = resolve_type_offset_size(resolved_type, FLAT)
 
         if type_offset in FLAT.array_types:
             member.upper_bound = FLAT.array_types[type_offset]['upper_bound']

@@ -114,6 +114,31 @@ typedef struct StructNDerived: public StructN {
     int d;
 } StructNDerived;
 
+typedef struct StructNDerivedPrivate: private StructN {
+    char c;
+    int d;
+} StructNDerivedPrivate;
+
+typedef struct StructNDerivedProtected: protected StructN {
+    char c;
+    int d;
+} StructNDerivedProtected;
+
+typedef struct StructN_2 {
+    char a;
+    int b;
+} StructN_2;
+
+typedef struct StructNMultiDerived: public StructN, StructN_2 {
+    char c;
+    int d;
+} StructNMultiDerived;
+
+typedef struct StructNMultiDerivedMixAccessibility: public StructN, private StructN_2 {
+    char c;
+    int d;
+} StructNMultiDerivedMixAccessibility;
+
 StructA struct_a;
 StructB struct_b;
 Namespace::StructC struct_c;
@@ -128,6 +153,10 @@ StructK struct_k;
 StructL struct_l;
 StructM<char, int> struct_m;
 StructNDerived struct_n_derived;
+StructNDerivedPrivate struct_n_derived_private;
+StructNDerivedProtected struct_n_derived_protected;
+StructNMultiDerived struct_n_multi_derived;
+StructNMultiDerivedMixAccessibility structd_n_multi_derived_mix_accessibility;
 
 ClassA class_a;
 ClassB class_b;
