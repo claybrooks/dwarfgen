@@ -12,6 +12,8 @@ class Member:
         self.upper_bound    = None
         self.lower_bound    = None
         self.accessibility  = None
+        self.min_val        = None
+        self.max_val        = None
         self.is_static      = False
 
     def to_json(self, json):
@@ -41,3 +43,9 @@ class Member:
 
         if self.lower_bound is not None:
             json['lowerBound'] = self.lower_bound
+
+        if self.min_val is not None:
+            json['minVal'] = self.min_val
+
+        if self.max_val is not None:
+            json['maxVal'] = self.max_val

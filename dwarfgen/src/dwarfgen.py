@@ -357,7 +357,8 @@ def build_structure_child(structure, members, die):
             return STATIC_STRUCTURE_MEMBER_DATA_POLICY(die, _member)
         elif VALID_INSTANCE_STRUCTURE_MEMBER_POLICY(die):
             return INSTANCE_STRUCTURE_MEMBER_DATA_POLICY(die, _member)
-
+    elif die.is_subrange_type():
+        build_subrange_type(die)
     elif die.is_structure_type():
         #members[parent_name] = die.type()
         pass
@@ -376,13 +377,11 @@ def build_structure_type(die, namespace):
     for child in die.iter_children():
         build_structure_child(structure, members, child)
 
-
 def build_type_def(die):
     if not VALID_TYPEDEF_POLICY(die):
         return
 
     FLAT.type_defs[die.offset] = TYPEDEF_DATA_POLICY(die)
-
 
 def build_array_type(die):
     if not VALID_ARRAY_POLICY(die):
@@ -390,14 +389,12 @@ def build_array_type(die):
 
     FLAT.array_types[die.offset] = ARRAY_DATA_POLICY(die)
 
-
 def build_subrange_type(die):
     if not VALID_SUBRANGE_POLICY(die):
         return
 
     FLAT.subrange_types[die.offset] = SUBRANGE_DATA_POLICY(die)
     SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY(die, FLAT)
-
 
 def die_info_rec(die, namespace:Namespace):
     for child in die.iter_children():
@@ -420,23 +417,24 @@ def die_info_rec(die, namespace:Namespace):
         if not child.is_namespace():
             die_info_rec(child, namespace)
 
-
-def resolveMember(member):
+def resolve_member(member):
     type_offset = member.type_offset
 
     if type_offset in FLAT.array_types:
         type_offset = FLAT.array_types[type_offset]['type']
+
+    if type_offset in FLAT.subrange_types:
+        type_offset = FLAT.subrange_types[type_offset]['type']
 
     while type_offset in FLAT.type_defs:
         type_offset = FLAT.type_defs[type_offset]['type']
 
     return type_offset
 
-
 def resolve_structure(structure):
     for member in structure.members.values():
         type_offset = member.type_offset
-        resolved_type = resolveMember(member)
+        resolved_type = resolve_member(member)
         if resolved_type in FLAT.base_types:
             if member.bit_size is None:
                 member.byte_size = FLAT.base_types[resolved_type]['size']
@@ -455,6 +453,9 @@ def resolve_structure(structure):
             if member.bit_size is not None:
                 member.bit_size = None
 
+        if type_offset in FLAT.subrange_types:
+            member.max_val = FLAT.subrange_types[type_offset]['upper_bound']
+            member.min_val = FLAT.subrange_types[type_offset]['lower_bound']
 
 def ada_disperse_structures(namespace):
     move_structures = []
@@ -481,7 +482,6 @@ def ada_disperse_structures(namespace):
             ns = namespace.namespaces[n]
 
         ns.structures[name] = struct
-
 
 def resolve_namespace(namespace):
 

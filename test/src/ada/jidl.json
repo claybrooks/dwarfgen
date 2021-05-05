@@ -58,6 +58,29 @@
                             "accessibility": "public"
                         }
                     }
+                },
+                "recordf": {
+                    "byteSize": 1,
+                    "members": {
+                        "a": {
+                            "type": "boolean",
+                            "accessibility": "public",
+                            "byteOffset": 0,
+                            "bitOffset": 7,
+                            "bitSize": 1,
+                            "minVal": 0,
+                            "maxVal": 1
+                        },
+                        "b": {
+                            "type": "integer",
+                            "accessibility": "public",
+                            "byteOffset": 0,
+                            "bitOffset": 0,
+                            "bitSize": 7,
+                            "minVal": 1,
+                            "maxVal": 120
+                        }
+                    }
                 }
             }
         }
