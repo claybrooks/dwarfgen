@@ -8,7 +8,7 @@ class Structure:
         self.template_params = []
         self.members = {}
 
-    def add_and_return_member(self, name, type_offset):
+    def create_member(self, name, type_offset):
         self.members[name] = Member(name, type_offset)
         return self.members[name]
 

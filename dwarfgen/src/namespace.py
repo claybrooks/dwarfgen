@@ -7,12 +7,12 @@ class Namespace:
         self.namespaces = {}
         self.structures = {}
 
-    def add_and_return_namespace(self, name):
+    def create_namespace(self, name):
         if name not in self.namespaces:
             self.namespaces[name] = Namespace(name)
         return self.namespaces[name]
 
-    def add_and_return_structure(self, name, size):
+    def create_structure(self, name, size):
         if name not in self.structures:
             self.structures[name] = Structure(name, size)
         return self.structures[name]

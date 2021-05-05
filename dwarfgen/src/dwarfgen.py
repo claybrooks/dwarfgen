@@ -27,6 +27,106 @@ def data_member_location(val):
     return val
 
 
+ACCESSIBILITY = {
+    1: "public",
+    2: "protected",
+    3: "private"
+}
+
+def v2_accessibility_policy(die):
+
+    if not die.has_accessibility():
+        return 'public'
+
+    return ACCESSIBILITY[die.accessibility()]
+
+def default_accessibility_policy(die):
+
+    if not die.has_accessibility():
+        parent = die.get_parent()
+        if parent.is_structure_type():
+            return 'public'
+        elif parent.is_class_type():
+            return "private"
+        else:
+            raise ValueError("Unknown Default Accessibility for {}".format(parent))
+
+    return ACCESSIBILITY[die.accessibility()]
+
+def default_valid_structure_policy(die):
+    return die.has_name() and die.has_byte_size() and not die.is_artificial()
+
+def default_valid_typedef_policy(die):
+    return die.has_type() and die.has_name()
+
+def default_typedef_data_policy(die):
+    return {
+        'name': die.name(),
+        'type': die.type()
+    }
+
+def default_valid_array_policy(die):
+    return die.has_sibling()
+
+def default_valid_subrange_policy(die):
+    return die.has_type() and die.has_upper_bound()
+
+def default_valid_basetype_policy(die):
+    return die.has_byte_size() and die.has_encoding() and die.has_name()
+
+def default_array_data_policy(die):
+    return {
+        'type': die.type(),
+        'sibling': die.sibling()
+    }
+
+def default_basetype_data_policy(die):
+
+    return {
+        'size': die.byte_size(),
+        'encoding': die.encoding(),
+        'name': die.name()
+    }
+
+def default_subrange_data_policy(die):
+    return {
+        'type': die.type(),
+        'lower_bound': SUBRANGE_LOWERBOUND_POLICY(die),
+        'upper_bound': die.upper_bound(),
+    }
+
+def zero_indexed_subrange_lowerbound_policy(die):
+    return die.lower_bound() if die.has_lower_bound() else 0
+
+def one_indexed_subrange_lowerbound_policy(die):
+    return die.lower_bound() if die.has_lower_bound() else 1
+
+def default_name_policy(die):
+
+    if die.has_namespace():
+        return die.namespace + '::' + die.name()
+    else:
+        return die.name()
+
+def default_subrange_data_for_array_parent_policy(die, flat):
+    parent = die.get_parent()
+    if parent and parent.offset in flat.array_types:
+        flat.array_types[parent.offset]['upper_bound'] = flat.subrange_types[die.offset]['upper_bound']
+        flat.array_types[parent.offset]['lower_bound'] = flat.subrange_types[die.offset]['lower_bound']
+
+def default_namespace_application_policy(namespace, die):
+    new_namespace = namespace.create_namespace(die.name())
+
+    # inject ".namespace" attribute on all children
+    for child in die.iter_children():
+        curr_ns = getattr(die, 'namespace', None)
+        if curr_ns is None:
+            child.namespace = die.name()
+        else:
+            child.namespace = curr_ns + '::' + die.name()
+
+    return new_namespace
+
 def wrap_die(die):
 
     # 'DW_AT_*'
@@ -96,10 +196,43 @@ def wrap_die(die):
 
 FLAT = None
 DETECTED_LANGUAGE = None
+DETECTED_VERSION = None
+
+# policies
+VALID_STRUCTURE_POLICY = default_valid_structure_policy
+VALID_TYPEDEF_POLICY = default_valid_typedef_policy
+VALID_ARRAY_POLICY = default_valid_array_policy
+VALID_SUBRANGE_POLICY = default_valid_subrange_policy
+VALID_BASETYPE_POLICY = default_valid_basetype_policy
+
+TYPEDEF_DATA_POLICY = default_typedef_data_policy
+ARRAY_DATA_POLICY = default_array_data_policy
+BASETYPE_DATA_POLICY = default_basetype_data_policy
+SUBRANGE_DATA_POLICY = default_subrange_data_policy
+SUBRANGE_LOWERBOUND_POLICY = zero_indexed_subrange_lowerbound_policy
+SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY = default_subrange_data_for_array_parent_policy
+
+NAMESPACE_APPLICATION_POLICY = default_namespace_application_policy
+
+ACCESSIBILITY_POLICY = default_accessibility_policy
+NAME_POLICY = default_name_policy
+
+
+def apply_policies(version, language):
+    global ACCESSIBILITY_POLICY
+    global SUBRANGE_LOWERBOUND_POLICY
+
+    if version == 2:
+        ACCESSIBILITY_POLICY = v2_accessibility_policy
+
+    if language == 'ADA':
+        SUBRANGE_LOWERBOUND_POLICY = one_indexed_subrange_lowerbound_policy
+
 
 def process(files):
     global FLAT
     global DETECTED_LANGUAGE
+    global DETECTED_VERSION
 
     namespace = Namespace('')
 
@@ -118,6 +251,7 @@ def process(files):
         FLAT = FlatStructure()
 
         for CU in dwarfinfo.iter_CUs():
+
             top_DIE = CU.get_top_DIE()
             wrap_die(top_DIE)
 
@@ -129,6 +263,8 @@ def process(files):
             else:
                 logging.error('Unkown Language from producer {}'.format(producer))
                 continue
+
+            apply_policies(CU.header.version, DETECTED_LANGUAGE)
 
             die_info_rec(top_DIE, namespace)
 
@@ -145,43 +281,30 @@ def process(files):
 
 
 def build_base_type(die):
-    if die.offset in FLAT.base_types:
+    if not VALID_BASETYPE_POLICY(die):
         return
 
-    FLAT.base_types[die.offset] = {
-        'size': die.byte_size(),
-        'encoding': die.encoding(),
-        'name': die.name()
-    }
+    FLAT.base_types[die.offset] = BASETYPE_DATA_POLICY(die)
 
 
 def build_structure_type(die, namespace):
-    if die.offset in FLAT.structures:
+
+    # invalid structure
+    if not VALID_STRUCTURE_POLICY(die):
         return
 
-    # we don't care about non-named things
-    if not die.has_name():
-        return
+    structure = namespace.create_structure(die.name(), die.byte_size())
 
-    # we don't care about things that don't have a size
-    if not die.has_byte_size():
-        return
-
-    if die.is_artificial():
-        return
-
-    structure = namespace.add_and_return_structure(die.name(), die.byte_size())
-
-    if die.has_namespace():
-        name = die.namespace + '::' + die.name()
-    else:
-        name = die.name()
+    # this is full name with namespace applied.  Mostly for later processing to get the fully qualified name without
+    # traversing the tree.  Basically, flatten it here so it doesn't have to be flattened later
+    name = NAME_POLICY(die)
 
     FLAT.structures[die.offset] = {
         'name': name,
         'size': die.byte_size(),
         'members': {}
     }
+
     members = FLAT.structures[die.offset]['members']
 
     for child in die.iter_children():
@@ -194,23 +317,11 @@ def build_structure_type(die, namespace):
             pass
         elif child.is_member():
 
-            _member = structure.add_and_return_member(
+            _member = structure.create_member(
                 child.name(), child.type()
             )
 
-            if child.has_accessibility():
-                _member.accessibility = child.accessibility()
-                if _member.accessibility == 1:
-                    _member.accessibility = "public"
-                elif _member.accessibility == 2:
-                    _member.accessibility = "protected"
-                else:
-                    _member.accessibility = "private"
-            else:
-                if die.is_structure_type():
-                    _member.accessibility = "public"
-                else:
-                    _member.accessibility = "private"
+            _member.accessibility = ACCESSIBILITY_POLICY(child)
 
             members[name] = {}
             member = members[name]
@@ -240,68 +351,30 @@ def build_structure_type(die, namespace):
 
 
 def build_type_def(die):
-    if die.offset in FLAT.type_defs:
+    if not VALID_TYPEDEF_POLICY(die):
         return
 
-    # ignore typedefs with no type
-    if not die.has_type():
-        return
-
-    FLAT.type_defs[die.offset] = {
-        'name': die.name(),
-        'type': die.type()
-    }
+    FLAT.type_defs[die.offset] = TYPEDEF_DATA_POLICY(die)
 
 
 def build_array_type(die):
-    if die.offset in FLAT.array_types:
+    if not VALID_ARRAY_POLICY(die):
         return
 
-    FLAT.array_types[die.offset] = {
-        'type': die.type(),
-        'sibling': die.sibling()
-    }
+    FLAT.array_types[die.offset] = ARRAY_DATA_POLICY(die)
 
 
 def build_subrange_type(die):
-    # don't care about things that don't have an underlying type
-    if not die.has_type():
+    if not VALID_SUBRANGE_POLICY(die):
         return
 
-    # don't care about things that don't have an upper bound
-    if not die.has_upper_bound:
-        return
-
-    if die.offset not in FLAT.subrange_types:
-        FLAT.subrange_types[die.offset] = {
-            'type': die.type(),
-            'lower_bound': die.lower_bound(),
-            'upper_bound': die.upper_bound(),
-        }
-
-    parent = die.get_parent()
-    if parent.offset in FLAT.array_types:
-        FLAT.array_types[parent.offset]['upper_bound'] = FLAT.subrange_types[die.offset]['upper_bound']
-        FLAT.array_types[parent.offset]['lower_bound'] = FLAT.subrange_types[die.offset]['lower_bound']
+    FLAT.subrange_types[die.offset] = SUBRANGE_DATA_POLICY(die)
+    SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY(die, FLAT)
 
 
 def die_info_rec(die, namespace:Namespace):
     for child in die.iter_children():
         wrap_die(child)
-
-        # we need to do special name processing for ada types because DW_TAG_namespace is not used.  Namespace can
-        # be inferred from names
-        '''
-        if DETECTED_LANGUAGE == 'ADA' and child.has_name():
-            if '__' in child.name():
-                tokens = child.name().split('__')
-                name = tokens[-1]
-                namespace = tokens[:-1]
-
-                new_namespace = namespace
-                for ns in namespace:
-                    new_namespace = new_namespace.add_and_return_namespace(ns)
-        '''
 
         if child.is_structure_like():
             build_structure_type(child, namespace)
@@ -314,16 +387,7 @@ def die_info_rec(die, namespace:Namespace):
         elif child.is_subrange_type():
             build_subrange_type(child)
         elif child.is_namespace():
-            new_namespace = namespace.add_and_return_namespace(child.name())
-
-            # inject ".namespace" attribute on all children
-            for cchild in child.iter_children():
-                curr_ns = getattr(child, 'namespace', None)
-                if curr_ns is None:
-                    cchild.namespace = child.name()
-                else:
-                    cchild.namespace = curr_ns + '::' + child.name()
-
+            new_namespace = NAMESPACE_APPLICATION_POLICY(namespace, child)
             die_info_rec(child, new_namespace)
 
         if not child.is_namespace():
@@ -364,6 +428,7 @@ def resolve_structure(structure):
             if member.bit_size is not None:
                 member.bit_size = None
 
+
 def ada_disperse_structures(namespace):
     move_structures = []
     for structure in namespace.structures.values():
@@ -374,7 +439,7 @@ def ada_disperse_structures(namespace):
         # add namespaces
         ns = namespace
         for n in namespaces:
-            ns = ns.add_and_return_namespace(n)
+            ns = ns.create_namespace(n)
 
         # we need to move this structure to the lower namespace
         move_structures.append((name, namespaces))
