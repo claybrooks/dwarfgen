@@ -128,13 +128,11 @@ def add_to_suite(test_class, so_file, jidl_file, loader, suite):
         suite.addTest(test_class(name, so_file, calculated_jidl, expected_jidl))
 
 
-if __name__ == '__main__':
-
+def run(so_file, jidl_file):
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
 
-    add_to_suite(TestDwarfGen, './bin/lib/libtest_cpp.so', './src/cpp/jidl.json', loader, suite)
-    add_to_suite(TestDwarfGen, './bin/lib/libtest_ada.so', './src/ada/jidl.json', loader, suite)
+    add_to_suite(TestDwarfGen, so_file, jidl_file, loader, suite)
 
     result = unittest.TextTestRunner().run(suite)
-    sys.exit(not result.wasSuccessful())
+    return result.wasSuccessful()

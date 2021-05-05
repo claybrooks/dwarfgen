@@ -247,36 +247,62 @@ DETECTED_LANGUAGE = None
 DETECTED_VERSION = None
 
 # policies
-VALID_STRUCTURE_POLICY = default_valid_structure_policy
-VALID_TYPEDEF_POLICY = default_valid_typedef_policy
-VALID_ARRAY_POLICY = default_valid_array_policy
-VALID_SUBRANGE_POLICY = default_valid_subrange_policy
-VALID_BASETYPE_POLICY = default_valid_basetype_policy
-VALID_STRUCTURE_MEMBER_POLICY = default_valid_structure_member_policy
-VALID_STATIC_STRUCTURE_MEMBER_POLICY = default_valid_static_structure_member_policy
-VALID_INSTANCE_STRUCTURE_MEMBER_POLICY = default_valid_instance_structure_member_policy
+def apply_default_policies():
+    global VALID_STRUCTURE_POLICY
+    global VALID_TYPEDEF_POLICY
+    global VALID_ARRAY_POLICY
+    global VALID_SUBRANGE_POLICY
+    global VALID_BASETYPE_POLICY
+    global VALID_STRUCTURE_MEMBER_POLICY
+    global VALID_STATIC_STRUCTURE_MEMBER_POLICY
+    global VALID_INSTANCE_STRUCTURE_MEMBER_POLICY
+    global TYPEDEF_DATA_POLICY
+    global ARRAY_DATA_POLICY
+    global BASETYPE_DATA_POLICY
+    global SUBRANGE_DATA_POLICY
+    global STRUCTURE_DATA_POLICY
+    global STRUCTURE_MEMBER_DATA_POLICY
+    global STATIC_STRUCTURE_MEMBER_DATA_POLICY
+    global INSTANCE_STRUCTURE_MEMBER_DATA_POLICY
+    global SUBRANGE_LOWERBOUND_POLICY
+    global SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY
+    global NAMESPACE_APPLICATION_POLICY
+    global ACCESSIBILITY_POLICY
+    global INHERITANCE_ACCESSIBILITY_POLICY
+    global NAME_POLICY
 
-TYPEDEF_DATA_POLICY = default_typedef_data_policy
-ARRAY_DATA_POLICY = default_array_data_policy
-BASETYPE_DATA_POLICY = default_basetype_data_policy
-SUBRANGE_DATA_POLICY = default_subrange_data_policy
-STRUCTURE_DATA_POLICY = default_structure_data_policy
-STRUCTURE_MEMBER_DATA_POLICY = default_structure_member_data_policy
-STATIC_STRUCTURE_MEMBER_DATA_POLICY = default_static_structure_member_data_policy
-INSTANCE_STRUCTURE_MEMBER_DATA_POLICY = default_instance_structure_member_data_policy
+    VALID_STRUCTURE_POLICY = default_valid_structure_policy
+    VALID_TYPEDEF_POLICY = default_valid_typedef_policy
+    VALID_ARRAY_POLICY = default_valid_array_policy
+    VALID_SUBRANGE_POLICY = default_valid_subrange_policy
+    VALID_BASETYPE_POLICY = default_valid_basetype_policy
+    VALID_STRUCTURE_MEMBER_POLICY = default_valid_structure_member_policy
+    VALID_STATIC_STRUCTURE_MEMBER_POLICY = default_valid_static_structure_member_policy
+    VALID_INSTANCE_STRUCTURE_MEMBER_POLICY = default_valid_instance_structure_member_policy
 
-SUBRANGE_LOWERBOUND_POLICY = zero_indexed_subrange_lowerbound_policy
-SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY = default_subrange_data_for_array_parent_policy
+    TYPEDEF_DATA_POLICY = default_typedef_data_policy
+    ARRAY_DATA_POLICY = default_array_data_policy
+    BASETYPE_DATA_POLICY = default_basetype_data_policy
+    SUBRANGE_DATA_POLICY = default_subrange_data_policy
+    STRUCTURE_DATA_POLICY = default_structure_data_policy
+    STRUCTURE_MEMBER_DATA_POLICY = default_structure_member_data_policy
+    STATIC_STRUCTURE_MEMBER_DATA_POLICY = default_static_structure_member_data_policy
+    INSTANCE_STRUCTURE_MEMBER_DATA_POLICY = default_instance_structure_member_data_policy
 
-NAMESPACE_APPLICATION_POLICY = default_namespace_application_policy
+    SUBRANGE_LOWERBOUND_POLICY = zero_indexed_subrange_lowerbound_policy
+    SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY = default_subrange_data_for_array_parent_policy
 
-ACCESSIBILITY_POLICY = default_accessibility_policy
-INHERITANCE_ACCESSIBILITY_POLICY = default_accessibility_policy
+    NAMESPACE_APPLICATION_POLICY = default_namespace_application_policy
 
-NAME_POLICY = default_name_policy
+    ACCESSIBILITY_POLICY = default_accessibility_policy
+    INHERITANCE_ACCESSIBILITY_POLICY = default_accessibility_policy
+
+    NAME_POLICY = default_name_policy
 
 
 def apply_policies(version, language):
+    apply_default_policies()
+
     global ACCESSIBILITY_POLICY
     global SUBRANGE_LOWERBOUND_POLICY
     global INHERITANCE_ACCESSIBILITY_POLICY

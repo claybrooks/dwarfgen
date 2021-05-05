@@ -7,7 +7,7 @@ import platform
 PLAT_STR = "{}-{}".format(platform.system(), platform.machine())
 
 
-def run():
+def run(dwarf_version):
 
     os.makedirs('cmake-build', exist_ok=True)
 
@@ -21,6 +21,7 @@ def run():
         "-Bcmake-build/{}".format(PLAT_STR),
         "-DCMAKE_BUILD_TYPE=Debug",
         "-DCMAKE_INSTALL_PREFIX=bin",
+        "-DGDWARF_VER={}".format(dwarf_version)
     ]
 
     CMAKE_INSTALL=[
