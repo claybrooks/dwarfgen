@@ -74,6 +74,39 @@ def default_valid_subrange_policy(die):
 def default_valid_basetype_policy(die):
     return die.has_byte_size() and die.has_encoding() and die.has_name()
 
+def default_valid_static_structure_member_policy(die):
+    return VALID_STRUCTURE_MEMBER_POLICY(die) and die.has_external()
+
+def default_valid_instance_structure_member_policy(die):
+    return VALID_STRUCTURE_MEMBER_POLICY(die) and die.has_data_member_location()
+
+def default_valid_structure_member_policy(die):
+    return die.has_name() and die.has_type()
+
+def default_structure_member_data_policy(die):
+    return {
+        'name': die.name(),
+        'typeOffset': die.type()
+    }
+def default_static_structure_member_data_policy(die, _member):
+    _member.is_static = True
+    return STRUCTURE_MEMBER_DATA_POLICY(die)
+
+def default_instance_structure_member_data_policy(die, _member):
+    ret = STRUCTURE_MEMBER_DATA_POLICY(die)
+
+    ret.update({"byteOffset": die.data_member_location()})
+    _member.byte_offset = die.data_member_location()
+
+    if die.has_bit_size():
+        ret.update({'DW_AT_bit_size': die.bit_size()})
+        _member.bit_size = die.bit_size()
+    if die.has_bit_offset():
+        ret.update({'DW_AT_bit_offset':  die.bit_offset()})
+        _member.bit_offset = die.bit_offset()
+
+    return ret
+
 def default_array_data_policy(die):
     return {
         'type': die.type(),
@@ -93,6 +126,13 @@ def default_subrange_data_policy(die):
         'type': die.type(),
         'lower_bound': SUBRANGE_LOWERBOUND_POLICY(die),
         'upper_bound': die.upper_bound(),
+    }
+
+def default_structure_data_policy(die):
+    return {
+        'name': NAME_POLICY(die),
+        'size': die.byte_size(),
+        'members': {}
     }
 
 def zero_indexed_subrange_lowerbound_policy(die):
@@ -204,11 +244,19 @@ VALID_TYPEDEF_POLICY = default_valid_typedef_policy
 VALID_ARRAY_POLICY = default_valid_array_policy
 VALID_SUBRANGE_POLICY = default_valid_subrange_policy
 VALID_BASETYPE_POLICY = default_valid_basetype_policy
+VALID_STRUCTURE_MEMBER_POLICY = default_valid_structure_member_policy
+VALID_STATIC_STRUCTURE_MEMBER_POLICY = default_valid_static_structure_member_policy
+VALID_INSTANCE_STRUCTURE_MEMBER_POLICY = default_valid_instance_structure_member_policy
 
 TYPEDEF_DATA_POLICY = default_typedef_data_policy
 ARRAY_DATA_POLICY = default_array_data_policy
 BASETYPE_DATA_POLICY = default_basetype_data_policy
 SUBRANGE_DATA_POLICY = default_subrange_data_policy
+STRUCTURE_DATA_POLICY = default_structure_data_policy
+STRUCTURE_MEMBER_DATA_POLICY = default_structure_member_data_policy
+STATIC_STRUCTURE_MEMBER_DATA_POLICY = default_static_structure_member_data_policy
+INSTANCE_STRUCTURE_MEMBER_DATA_POLICY = default_instance_structure_member_data_policy
+
 SUBRANGE_LOWERBOUND_POLICY = zero_indexed_subrange_lowerbound_policy
 SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY = default_subrange_data_for_array_parent_policy
 
@@ -287,6 +335,33 @@ def build_base_type(die):
     FLAT.base_types[die.offset] = BASETYPE_DATA_POLICY(die)
 
 
+def build_structure_child(structure, members, die):
+    wrap_die(die)
+
+    if die.is_template_type_param():
+        #TODO implement some sort of template parameters
+        pass
+    elif die.is_inheritance():
+        #TODO implement some sort of inheritance
+        pass
+    elif die.is_member():
+        if not VALID_STRUCTURE_MEMBER_POLICY(die):
+            return
+
+        _member = structure.create_member(
+            die.name(), die.type()
+        )
+        _member.accessibility = ACCESSIBILITY_POLICY(die)
+
+        if VALID_STATIC_STRUCTURE_MEMBER_POLICY(die):
+            return STATIC_STRUCTURE_MEMBER_DATA_POLICY(die, _member)
+        elif VALID_INSTANCE_STRUCTURE_MEMBER_POLICY(die):
+            return INSTANCE_STRUCTURE_MEMBER_DATA_POLICY(die, _member)
+
+    elif die.is_structure_type():
+        #members[parent_name] = die.type()
+        pass
+
 def build_structure_type(die, namespace):
 
     # invalid structure
@@ -295,59 +370,11 @@ def build_structure_type(die, namespace):
 
     structure = namespace.create_structure(die.name(), die.byte_size())
 
-    # this is full name with namespace applied.  Mostly for later processing to get the fully qualified name without
-    # traversing the tree.  Basically, flatten it here so it doesn't have to be flattened later
-    name = NAME_POLICY(die)
-
-    FLAT.structures[die.offset] = {
-        'name': name,
-        'size': die.byte_size(),
-        'members': {}
-    }
-
+    FLAT.structures[die.offset] = STRUCTURE_DATA_POLICY(die)
     members = FLAT.structures[die.offset]['members']
 
     for child in die.iter_children():
-        wrap_die(child)
-        if child.is_template_type_param():
-            #TODO implement some sort of template parameters
-            pass
-        elif child.is_inheritance():
-            #TODO implement some sort of inheritance
-            pass
-        elif child.is_member():
-
-            _member = structure.create_member(
-                child.name(), child.type()
-            )
-
-            _member.accessibility = ACCESSIBILITY_POLICY(child)
-
-            members[name] = {}
-            member = members[name]
-
-            # based on dwarf spec, if a member of structure is "external", then it's a static member of that class/struct
-            if child.has_external():
-                _member.is_static = True
-            else:
-                _member.byte_offset = child.data_member_location()
-                member['byteOffset'] = child.data_member_location()
-
-            member['name'] = child.name()
-            member['typeOffset'] = child.type()
-
-            if child.has_bit_size():
-                value = child.bit_size()
-                member['DW_AT_bit_size'] = value
-                _member.bit_size = value
-
-            if child.has_bit_offset():
-                value = child.bit_offset()
-                member['DW_AT_bit_offset'] = value
-                _member.bit_offset = value
-
-        elif child.is_structure_type():
-            members[name] = child.type()
+        build_structure_child(structure, members, child)
 
 
 def build_type_def(die):
