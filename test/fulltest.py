@@ -12,9 +12,6 @@ import time
 
 success = True
 
-build_ada.run()
-success = success and test.run('./bin/lib/libtest_ada.so', './src/ada/jidl.json')
-
 cpp_so = './bin/lib/libtest_cpp.so'
 cpp_jidl = './src/cpp/jidl.json'
 build_cpp.run(2)
@@ -26,4 +23,7 @@ success = success and test.run(cpp_so, cpp_jidl)
 build_cpp.run(4)
 success = success and test.run(cpp_so, cpp_jidl)
 
-sys.exit(not success)
+build_ada.run()
+success = success and test.run('./bin/lib/libtest_ada.so', './src/ada/jidl.json')
+
+sys.exit(0 if success else 1)
