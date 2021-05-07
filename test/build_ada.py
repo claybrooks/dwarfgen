@@ -1,39 +1,55 @@
 import subprocess
+import os
 
-def build_objects(sources):
+def build_objects(sources, compiler, compiler_options, linker_options):
     for src in sources:
-        subprocess.check_call([
-            "gnatmake",
-            "-g",
-            src,
-            "-c",
-            "-fPIC"
-        ])
+        try:
+            subprocess.check_call([
+                compiler,
+                "-g",
+                src,
+                "-c",
+            ] + compiler_options)
+        except subprocess.CalledProcessError:
+            return False
 
-def make_shared(objects):
-    subprocess.check_call([
-        "gcc",
-        "-shared",
-        "-o",
-        "bin/lib/libtest_ada.so",
-            "-gnat12",
-            "-gdwarf-5"
-    ] + objects)
+    return True
+
+def make_shared(objects, compiler):
+
+    os.makedirs(os.path.join("bin", "lib"), exist_ok=True)
+
+    success = True
+
+    try:
+        subprocess.check_call([
+            compiler,
+            "-shared",
+            "-o",
+            "bin/lib/libtest_ada.so"
+        ] + objects)
+    except subprocess.CalledProcessError:
+        success = False
 
     for obj in objects:
-        subprocess.check_call([
-            "rm",
-            "-f",
-            obj
-        ])
+        try:
+            subprocess.check_call([
+                "rm",
+                "-f",
+                obj
+            ])
 
-        subprocess.check_call([
-            "rm",
-            "-f",
-            obj.replace(".o", ".ali")
-        ])
+            subprocess.check_call([
+                "rm",
+                "-f",
+                obj.replace(".o", ".ali")
+            ])
+        except subprocess.CalledProcessError:
+            success = False
 
-def run():
+    return success
+
+def run(compiler, compiler_options, linker_options):
     sources = [
         'src/ada/records.ads',
     ]
@@ -42,8 +58,10 @@ def run():
     for src in sources:
         objects.append(src.split('/')[-1].replace(".ads", ".o"))
 
-    build_objects(sources)
-    make_shared(objects)
+    success = build_objects(sources, compiler, compiler_options, linker_options)
+    success = success and make_shared(objects, compiler)
+
+    return success
 
 
 if __name__ == '__main__':

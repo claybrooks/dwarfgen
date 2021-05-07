@@ -5,6 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Build Ada",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/fulltest.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/test"
+        },
+        {
             "name": "Test Suite",
             "type": "python",
             "request": "launch",

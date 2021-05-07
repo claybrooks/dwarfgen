@@ -1,3 +1,4 @@
+import logging
 import subprocess
 import sys
 import os
@@ -6,13 +7,9 @@ import platform
 
 PLAT_STR = "{}-{}".format(platform.system(), platform.machine())
 
-
-def run(dwarf_version):
+def run(compiler, compiler_options, linker_options):
 
     os.makedirs('cmake-build', exist_ok=True)
-
-    CXX_COMPILER="g++-10"
-    CXX_STANDARD="20"
 
     CMAKE_GENERATE=[
         "cmake",
@@ -21,15 +18,15 @@ def run(dwarf_version):
         "-Bcmake-build/{}".format(PLAT_STR),
         "-DCMAKE_BUILD_TYPE=Debug",
         "-DCMAKE_INSTALL_PREFIX=bin",
-        "-DGDWARF_VER={}".format(dwarf_version)
+        "-DCMAKE_CXX_FLAGS={}".format(' '.join(compiler_options))
     ]
 
-    CMAKE_INSTALL=[
+    CMAKE_BUILD=[
         "cmake",
         "--build",
         "cmake-build/{}".format(PLAT_STR),
         "--target",
-        "install"
+        "install",
     ]
 
     if sys.platform.startswith('win'):
@@ -37,8 +34,13 @@ def run(dwarf_version):
     else:
         shell = False
 
-    subprocess.check_call(CMAKE_GENERATE, stderr=subprocess.STDOUT, shell=shell)
-    subprocess.check_call(CMAKE_INSTALL, stderr=subprocess.STDOUT, shell=shell)
+    try:
+        subprocess.check_call(CMAKE_GENERATE, stderr=subprocess.STDOUT, shell=shell)
+        subprocess.check_call(CMAKE_BUILD, stderr=subprocess.STDOUT, shell=shell)
+        return True
+    except subprocess.CalledProcessError as e:
+        logging.error("Error {}".format(e))
+        return False
 
 if __name__ == '__main__':
     run()

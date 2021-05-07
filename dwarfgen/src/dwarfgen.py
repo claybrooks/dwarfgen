@@ -365,13 +365,11 @@ def process(files):
 
     return namespace
 
-
 def build_base_type(die):
     if not VALID_BASETYPE_POLICY(die):
         return
 
     FLAT.base_types[die.offset] = BASETYPE_DATA_POLICY(die)
-
 
 def build_structure_child(structure, members, die):
     wrap_die(die)

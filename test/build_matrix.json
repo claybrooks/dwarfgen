@@ -1,0 +1,30 @@
+{
+    "global": {
+        "compilerOptions": [],
+        "linkerOptions": [],
+        "matrix": {
+            "compilerOptions": [
+                ["gdwarf-2"],
+                ["gdwarf-3"],
+                ["gdwarf-4"]
+            ],
+            "linkerOptions": [
+                [],
+                [],
+                []
+            ]
+        }
+    },
+    "language": {
+        "ada": {
+            "compilers": ["gcc"],
+            "compilerOptions": ["gnat12"],
+            "linkerOptions": []
+        },
+        "cpp": {
+            "compilers": ["gcc"],
+            "compilerOptions": [],
+            "linkerOptions": []
+        }
+    }
+}
