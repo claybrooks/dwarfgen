@@ -7,6 +7,7 @@ def build_objects(sources, compiler, compiler_options, linker_options):
             subprocess.check_call([
                 compiler,
                 "-g",
+                "-fPIC"
                 src,
                 "-c",
             ] + compiler_options)
