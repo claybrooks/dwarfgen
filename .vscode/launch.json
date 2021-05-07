@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Build Ada",
+            "name": "Full Test",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/test/fulltest.py",
@@ -14,32 +14,16 @@
             "cwd": "${workspaceFolder}/test"
         },
         {
-            "name": "Test Suite",
+            "name": "Generate CPP",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/test/fulltest.py",
+            "program": "${workspaceFolder}/dwarfgen",
             "console": "integratedTerminal",
-            "justMyCode": false,
-            "cwd": "${workspaceFolder}/test"
-        },
-        {
-            "name": "Test",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/test/test.py",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/test",
-            "justMyCode": false,
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}${pathSeparator}${env:PYTHONPATH}"
-            }
-        },
-        {
-            "name": "Build",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/test/build.py",
-            "console": "integratedTerminal",
+            "args": [
+                "--file", "${workspaceFolder}/test/bin/lib/libtest_cpp.so",
+                "--to-lang", "cpp",
+                "--to-lang-dest", "${workspaceFolder}/test/autogen/cpp"
+            ],
             "justMyCode": false
         }
     ]

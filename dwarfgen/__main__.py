@@ -4,7 +4,8 @@ import os
 import sys
 import json
 import pymanifest
-from .src import dwarfgen
+from src import dwarfgen
+from src import codegen
 
 ap = argparse.ArgumentParser()
 
@@ -36,7 +37,7 @@ ap.add_argument(
     '--to-lang',
     action='append',
     default=[],
-    choices=[]
+    choices=['cpp']
 )
 
 ap.add_argument(
@@ -88,12 +89,18 @@ if failed:
 
 ns = dwarfgen.process(files)
 
+jidl = {}
+ns.to_json(jidl)
+
 for idl in args.to_idl:
     if idl == 'jidl':
-        jidl_json = {}
-        ns.to_json(jidl_json)
         with open(os.path.join(args.to_idl_dest, 'jidl.json'), 'w+') as f:
-            json.dump(jidl_json, f, indent=4)
+            json.dump(jidl, f, indent=4)
 
 for lang in args.to_lang:
-    print ("{} not supported".format(lang))
+    type_strs = codegen.generate(lang, jidl)
+
+    ext = codegen.get_ext(lang)
+    for name, type_str in type_strs.items():
+        with open(os.path.join(args.to_lang_dest, "{}{}".format(name, ext)), 'w+') as f:
+            f.write(type_str)

@@ -22,6 +22,8 @@ def make_shared(objects, compiler):
 
     success = True
 
+    # TODO this is a hack for travis-ci, figure out why gcc won't work
+    # alone
     if compiler == 'gnatmake':
         compiler = 'gcc'
 
