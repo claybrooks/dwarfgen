@@ -21,6 +21,9 @@ def make_shared(objects, compiler):
 
     success = True
 
+    if compiler == 'gnatmake':
+        compiler = 'gcc'
+
     try:
         subprocess.check_call([
             compiler,

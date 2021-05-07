@@ -17,7 +17,7 @@
     },
     "language": {
         "ada": {
-            "compilers": ["gcc"],
+            "compilers": ["gnatmake"],
             "compilerOptions": ["gnat12"],
             "linkerOptions": []
         },
