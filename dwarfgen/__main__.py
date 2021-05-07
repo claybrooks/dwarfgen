@@ -98,9 +98,4 @@ for idl in args.to_idl:
             json.dump(jidl, f, indent=4)
 
 for lang in args.to_lang:
-    type_strs = codegen.generate(lang, jidl)
-
-    ext = codegen.get_ext(lang)
-    for name, type_str in type_strs.items():
-        with open(os.path.join(args.to_lang_dest, "{}{}".format(name, ext)), 'w+') as f:
-            f.write(type_str)
+    type_strs = codegen.generate(lang, jidl, args.to_lang_dest)

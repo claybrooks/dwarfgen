@@ -288,6 +288,7 @@
             "byteSize": 16,
             "baseStructures": {
                 "StructN": {
+                    "type": "StructN",
                     "byteOffset": 0,
                     "accessibility": "public"
                 }
@@ -311,6 +312,7 @@
             "byteSize": 16,
             "baseStructures": {
                 "StructN": {
+                    "type": "StructN",
                     "byteOffset": 0,
                     "accessibility": "private"
                 }
@@ -334,6 +336,7 @@
             "byteSize": 16,
             "baseStructures": {
                 "StructN": {
+                    "type": "StructN",
                     "byteOffset": 0,
                     "accessibility": "protected"
                 }
@@ -357,10 +360,12 @@
             "byteSize": 24,
             "baseStructures": {
                 "StructN": {
+                    "type": "StructN",
                     "byteOffset": 0,
                     "accessibility": "public"
                 },
                 "StructN_2": {
+                    "type": "StructN_2",
                     "byteOffset": 8,
                     "accessibility": "public"
                 }
@@ -384,10 +389,12 @@
             "byteSize": 24,
             "baseStructures": {
                 "StructN": {
+                    "type": "StructN",
                     "byteOffset": 0,
                     "accessibility": "public"
                 },
                 "StructN_2": {
+                    "type": "StructN_2",
                     "byteOffset": 8,
                     "accessibility": "private"
                 }

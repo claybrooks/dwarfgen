@@ -39,6 +39,7 @@ class Structure:
             baseStructures = json['baseStructures']
             for base_structure in self.base_structures.values():
                 baseStructures[base_structure.type] = {
+                    'type': base_structure.type,
                     'byteOffset': base_structure.byte_offset,
                     'accessibility': base_structure.accessibility
                 }

@@ -1,144 +1,146 @@
+import os
 
-primitives = [
-    'char',
-    'unsigned char',
-    'short',
-    'unsigned short',
-    'int',
-    'unsigned int',
-    'float',
-    'double',
-]
+def get_primitives():
+    return [
+        'char',
+        'unsigned char',
+        'short',
+        'unsigned short',
+        'int',
+        'unsigned int',
+        'float',
+        'double',
+    ]
 
-structure_format =\
+def get_structure_format():
+    return \
 """{includes}
 {namespace_open}
 typedef struct {name}{inheritance} {{
 
-public:
-    {public_members}
-
-protected:
-    {protected_members}
-
-private:
-    {private_members}
+    {members}
 
 }} {name};
 {namespace_close}
 """
 
 
-def default_struct_data():
+def get_type_open_data():
     return {
         'includes': '',
+    }
+
+def get_type_body_data():
+    return {
         'namespace_open': '',
         'name': '',
         'inheritance': '',
-        'public_members': '',
-        'protected_members': '',
-        'private_members': '',
+        'members': '',
         'namespace_close': '',
     }
+
+def get_type_close_data():
+    return {}
 
 def get_ext():
     return ".hpp"
 
-def generate_type(namespace, name, jidl):
-    struct_data = default_struct_data()
+def calculate_relative_file_location(namespace, name):
+    folders = os.path.sep.join(namespace)
+    return os.path.join(folders, '{}{}'.format(name, get_ext()))
 
-    if name == 'StructNDerived':
-        i = 0
+def calculate_member_include(member_name, member_data):
+    member_type = member_data['type']
+
+    if 'array of ' in member_type:
+        member_type = member_type.replace('array of ', '')
+
+    if member_type in get_primitives():
+        return None
+
+    tokens = member_type.split('::')
+    namespace = tokens[:-1]
+    typename = tokens[-1]
+
+    return calculate_relative_file_location(namespace, typename)
+
+def calculate_member_includes(jidl):
+    includes = []
+    for member_name, member_data in jidl.items():
+        member_include = calculate_member_include(member_name, member_data)
+        if member_include is not None:
+            includes.append(member_include)
+    return includes
+
+def calculate_type_open(namespace, name, jidl):
 
     includes = []
-    public_members = []
-    protected_members = []
-    private_members =[]
-    inheritance = []
+    includes.extend(calculate_member_includes(jidl.get('staticMembers', {})))
+    includes.extend(calculate_member_includes(jidl.get('members', {})))
+    includes.extend(calculate_member_includes(jidl.get('baseStructures', {})))
 
-    accessibility_map = {
-        'public': public_members,
-        'protected': protected_members,
-        'private': private_members
+    type_open_data = get_type_open_data()
+    type_open_data['includes'] = '\n'.join('#include "{}"'.format(x) for x in includes)
+
+    return type_open_data
+
+
+def calculate_member_str(name, jidl, is_static=False):
+    member_str_f = '{type} {name};'
+    array_member_str_f = '{type} {name}[{size}];'
+
+    str_f = member_str_f
+
+    member_type = jidl['type']
+    str_data = {
+        'type': member_type,
+        'name': name,
     }
 
-    struct_data['name'] = name
-    if namespace != '':
-        struct_data['namespace_open'] = 'namespace {} {{'.format(namespace)
-        struct_data['namespace_close'] = '}'
+    if member_type.startswith('static '):
+        member_type = member_type.replace('static ', '')
+
+    if member_type.startswith('array of '):
+        member_type = member_type.replace('array of ', '')
+
+    if 'array of ' in jidl['type']:
+        str_data['type'] = str_data['type'].replace('array of', '')
+        str_data['size'] = jidl['upperBound'] + 1
+        str_f = array_member_str_f
+
+    member_str = str_f.format(**str_data)
+    if is_static:
+        member_str = 'static ' + member_str
+
+    member_str = jidl['accessibility'] + ': ' + member_str
+    return member_str
 
 
-    baseStructures = jidl.get('baseStructures', {})
-    for baseStructureName, baseStructureJidl in baseStructures.items():
-        base_struct_str = baseStructureName.replace('::', '_')
-        includes.append('{}{}'.format(base_struct_str, get_ext()))
-        inheritance.append(baseStructureJidl['accessibility'] + ' ' + base_struct_str)
+def calculate_type_body(namespace, name, jidl):
 
-    for type_name, type_jidl in jidl.get('staticMembers', {}).items():
-        if 'members' not in jidl:
-            jidl['members'] = {}
+    body_data = get_type_body_data()
 
-        jidl['members'][type_name] = dict(type_jidl)
-        jidl['members'][type_name]['type'] = 'static ' + jidl['members'][type_name]['type']
+    members = []
+    inheritance = []
 
-    for type_name, type_jidl in jidl.get('members', {}).items():
-        member_str_f = '{type} {name};'
-        array_member_str_f = '{type} {name}[{size}];'
+    body_data['name'] = name
+    if namespace != []:
+        body_data['namespace_open'] = 'namespace {} {{'.format('::'.join(namespace))
+        body_data['namespace_close'] = '}'
 
-        str_f = member_str_f
+    for type_name, data in jidl.get('baseStructures', {}).items():
+        inheritance.append(data['accessibility'] + ' ' + type_name)
 
-        member_type = type_jidl['type']
-        str_data = {
-            'type': member_type,
-            'name': type_name,
-        }
+    for member_name, member_jidl in jidl.get('staticMembers', {}).items():
+        members.append(calculate_member_str(member_name, member_jidl, is_static=True))
 
-        if member_type.startswith('static '):
-            member_type = member_type.replace('static ', '')
+    for member_name, member_jidl in jidl.get('members', {}).items():
+        members.append(calculate_member_str(member_name, member_jidl))
 
-        if member_type.startswith('array of '):
-            member_type = member_type.replace('array of ', '')
+    body_data['members'] = '\n    '.join(members)
+    body_data['inheritance'] = ' : ' + ', '.join(inheritance) if len(inheritance) > 0 else ''
 
-        if member_type not in primitives:
-            include_str = namespace.replace('::', '_')
-            member_type = member_type.replace('::', '_')
-            if include_str:
-                include_str = include_str + '_' + member_type
-            else:
-                include_str = member_type
+    return body_data
 
-            includes.append('{}{}'.format(include_str, get_ext()))
-
-        if 'array of' in type_jidl['type']:
-            str_data['type'] = str_data['type'].replace('array of', '')
-            str_data['size'] = type_jidl['upperBound'] + 1
-            str_f = array_member_str_f
-
-        accessibility_map[type_jidl['accessibility']].append(str_f.format(**str_data))
-
-    struct_data['includes'] = '\n'.join(['#include "{}"'.format(x) for x in includes])
-    struct_data['public_members'] = '\n    '.join(public_members)
-    struct_data['protected_members'] = '\n    '.join(protected_members)
-    struct_data['private_members'] = '\n    '.join(private_members)
-    struct_data['inheritance'] = ' : ' + ', '.join(inheritance) if len(inheritance) > 0 else ''
-
-    filename = namespace.replace('::', '_')
-    if filename:
-        filename = filename + '_' + name
-    else:
-        filename = name
-
-    return {filename: structure_format.format(**struct_data)}
-
-def generate(jidl, namespace=''):
-    type_strs = {}
-
-    namespaces, structures = jidl['namespaces'], jidl['structures']
-
-    for name, _jidl in namespaces.items():
-        type_strs.update(generate(_jidl, namespace + '::' + name if namespace != '' else name))
-
-    for name, _jidl in structures.items():
-        type_strs.update(generate_type(namespace, name, _jidl))
-
-    return type_strs
+def calculate_type_close(namespace, name, jidl):
+    return {}
