@@ -118,7 +118,7 @@ pip install dwarfgen
 # Support Matrices
 
 ## DWARF Version Support
-- :heavy_check_mark: - Language specific features implemented with tests
+- :heavy_check_mark: - Language specific features implemented
 - :warning: - Core DWARF features implemented, language specific features are not implemented
 - :x: - Not implemented
 
@@ -186,5 +186,8 @@ python -m dwarfgen --file /path/to/shared_object.so --to-lang cpp --to-lang-dest
 
 ``` python
 # Register a custom language generator module and generate in that language
-python -m dwarfgen --file /path/to/shared_object.so --lang-generator python /path/to/python/generator/module --to-lang python --to-lang-dest ~/autogen/python
+python -m dwarfgen --file /path/to/shared_object.so \
+                   --lang-generator python /path/to/module \
+                   --to-lang python \
+                   --to-lang-dest ~/autogen/python
 ```
