@@ -25,6 +25,11 @@
             "compilers": ["gcc"],
             "compilerOptions": [],
             "linkerOptions": []
+        },
+        "fortran": {
+            "compilers": ["gfortran"],
+            "compilerOptions": ["-std=f2018"],
+            "linkerOptions": []
         }
     }
 }

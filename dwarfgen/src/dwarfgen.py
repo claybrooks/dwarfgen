@@ -10,12 +10,14 @@ from .member import Member
 DEFAULT_LOWER_BOUND = {
     'C++': 0,
     'ADA': 1,
+    'FORTRAN': 1,
 }
 
 class FlatStructure:
     def __init__(self):
         self.structures = {}
         self.base_types = {}
+        self.string_types = {}
         self.array_types = {}
         self.subrange_types = {}
         self.type_defs = {}
@@ -81,6 +83,9 @@ def default_valid_subrange_policy(die):
 def default_valid_basetype_policy(die):
     return die.has_byte_size() and die.has_encoding() and die.has_name()
 
+def default_valid_stringtype_policy(die):
+    return die.has_byte_size()
+
 def default_valid_static_structure_member_policy(die):
     return VALID_STRUCTURE_MEMBER_POLICY(die) and die.has_external()
 
@@ -123,10 +128,20 @@ def default_array_data_policy(die):
 
 def default_basetype_data_policy(die):
 
+    name = die.name()
+    if '(kind' in name:
+        name = name.split('(')[0]
+
     return {
         'size': die.byte_size(),
         'encoding': die.encoding(),
-        'name': die.name()
+        'name': name
+    }
+
+def default_valid_stringtype_data_policy(die):
+    return {
+        'size': die.byte_size(),
+        'name': 'string' if die.byte_size() > 1 else 'char'
     }
 
 def default_subrange_data_policy(die):
@@ -213,6 +228,7 @@ def wrap_die(die):
         'class_type',
         'member',
         'base_type',
+        'string_type',
         'typedef',
         'sibling',
         'array_type',
@@ -253,12 +269,14 @@ def apply_default_policies():
     global VALID_ARRAY_POLICY
     global VALID_SUBRANGE_POLICY
     global VALID_BASETYPE_POLICY
+    global VALID_STRINGTYPE_POLICY
     global VALID_STRUCTURE_MEMBER_POLICY
     global VALID_STATIC_STRUCTURE_MEMBER_POLICY
     global VALID_INSTANCE_STRUCTURE_MEMBER_POLICY
     global TYPEDEF_DATA_POLICY
     global ARRAY_DATA_POLICY
     global BASETYPE_DATA_POLICY
+    global STRINGTYPE_DATA_POLICY
     global SUBRANGE_DATA_POLICY
     global STRUCTURE_DATA_POLICY
     global STRUCTURE_MEMBER_DATA_POLICY
@@ -276,6 +294,7 @@ def apply_default_policies():
     VALID_ARRAY_POLICY = default_valid_array_policy
     VALID_SUBRANGE_POLICY = default_valid_subrange_policy
     VALID_BASETYPE_POLICY = default_valid_basetype_policy
+    VALID_STRINGTYPE_POLICY = default_valid_stringtype_policy
     VALID_STRUCTURE_MEMBER_POLICY = default_valid_structure_member_policy
     VALID_STATIC_STRUCTURE_MEMBER_POLICY = default_valid_static_structure_member_policy
     VALID_INSTANCE_STRUCTURE_MEMBER_POLICY = default_valid_instance_structure_member_policy
@@ -283,6 +302,7 @@ def apply_default_policies():
     TYPEDEF_DATA_POLICY = default_typedef_data_policy
     ARRAY_DATA_POLICY = default_array_data_policy
     BASETYPE_DATA_POLICY = default_basetype_data_policy
+    STRINGTYPE_DATA_POLICY = default_valid_stringtype_data_policy
     SUBRANGE_DATA_POLICY = default_subrange_data_policy
     STRUCTURE_DATA_POLICY = default_structure_data_policy
     STRUCTURE_MEMBER_DATA_POLICY = default_structure_member_data_policy
@@ -311,7 +331,7 @@ def apply_policies(version, language):
         ACCESSIBILITY_POLICY = v2_accessibility_policy
         INHERITANCE_ACCESSIBILITY_POLICY = v2_inheritance_accessibility_policy
 
-    if language == 'ADA':
+    if language == 'ADA' or language == 'FORTRAN':
         SUBRANGE_LOWERBOUND_POLICY = one_indexed_subrange_lowerbound_policy
 
 
@@ -346,6 +366,8 @@ def process(files):
                 DETECTED_LANGUAGE = 'C++'
             elif 'Ada' in producer:
                 DETECTED_LANGUAGE = 'ADA'
+            elif 'Fortran' in producer:
+                DETECTED_LANGUAGE = 'FORTRAN'
             else:
                 logging.error('Unkown Language from producer {}'.format(producer))
                 continue
@@ -431,6 +453,12 @@ def build_subrange_type(die):
     FLAT.subrange_types[die.offset] = SUBRANGE_DATA_POLICY(die)
     SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY(die, FLAT)
 
+def build_string_type(die):
+    if not VALID_STRINGTYPE_POLICY(die):
+        return
+
+    FLAT.string_types[die.offset] = STRINGTYPE_DATA_POLICY(die)
+
 def die_info_rec(die, namespace:Namespace):
     for child in die.iter_children():
         wrap_die(child)
@@ -439,6 +467,8 @@ def die_info_rec(die, namespace:Namespace):
             build_structure_type(child, namespace)
         elif child.is_base_type():
             build_base_type(child)
+        elif child.is_string_type():
+            build_string_type(child)
         elif child.is_typedef():
             build_type_def(child)
         elif child.is_array_type():
@@ -451,7 +481,6 @@ def die_info_rec(die, namespace:Namespace):
 
         if not child.is_namespace():
             die_info_rec(child, namespace)
-
 
 def resolve_type_offset(type_offset, flat):
     if type_offset in flat.array_types:
@@ -470,6 +499,8 @@ def resolve_type(type_offset, flat):
         return FLAT.base_types[type_offset]
     elif type_offset in FLAT.structures:
         return FLAT.structures[type_offset]
+    elif type_offset in FLAT.string_types:
+        return FLAT.string_types[type_offset]
     return None
 
 def resolve_type_offset_name(type_offset, flat):

@@ -1,0 +1,22 @@
+{
+    "namespaces": {},
+    "structures": {
+        "itema": {
+            "byteSize": 8,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 1,
+                    "type": "char",
+                    "accessibility": "public"
+                },
+                "b": {
+                    "byteOffset": 4,
+                    "byteSize": 4,
+                    "type": "integer",
+                    "accessibility": "public"
+                }
+            }
+        }
+    }
+}
