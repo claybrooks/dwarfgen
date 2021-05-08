@@ -28,7 +28,7 @@
         },
         "fortran": {
             "compilers": ["gfortran"],
-            "compilerOptions": ["-std=f2018"],
+            "compilerOptions": ["-std=f95"],
             "linkerOptions": []
         }
     }
