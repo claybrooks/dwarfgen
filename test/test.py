@@ -62,7 +62,7 @@ class TestDwarfGen(unittest.TestCase):
             cls.__test_structures_from_jidl(jidl_json['namespaces'][ns], structures, new_namespace)
 
     @classmethod
-    def test_structures_from_jidl(cls, jidl_json):
+    def structures_from_jidl(cls, jidl_json):
         structures = []
         namespaces = []
         cls.__test_structures_from_jidl(jidl_json, structures, namespaces)
@@ -123,7 +123,7 @@ def add_to_suite(test_class, so_file, jidl_file, loader, suite):
     with open(jidl_file, 'r') as f:
         expected_jidl = json.load(f)
 
-    names = test_class.get_tests(test_class.test_structures_from_jidl(expected_jidl))
+    names = test_class.get_tests(test_class.structures_from_jidl(expected_jidl))
     for name in names:
         suite.addTest(test_class(name, so_file, calculated_jidl, expected_jidl))
 

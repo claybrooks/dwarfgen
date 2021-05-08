@@ -152,12 +152,12 @@ pip install dwarfgen
 | DWARF v4 | :heavy_check_mark: | :x:                      | :heavy_check_mark:  |
 | DWARF v5 | :x:                | :x:                      | :x:                 |
 
-| Ada      | Constrained Types        | Records            | Repspec            | Tagged Types  |
-| -------- | :----------------------: | :----------------: | :----------------: | :-----------: |
-| DWARF v2 | :heavy_check_mark:       | :heavy_check_mark: | :heavy_check_mark: | :x:           |
-| DWARF v3 | :heavy_check_mark:       | :heavy_check_mark: | :heavy_check_mark: | :x:           |
-| DWARF v4 | :heavy_check_mark:       | :heavy_check_mark: | :heavy_check_mark: | :x:           |
-| DWARF v5 | :x:                      | :x:                | :x:                | :x:           |
+| Ada      | Constrained Types        | Records            | Repspec            | Tagged Types       |
+| -------- | :----------------------: | :----------------: | :----------------: | :----------------: |
+| DWARF v2 | :heavy_check_mark:       | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| DWARF v3 | :heavy_check_mark:       | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| DWARF v4 | :heavy_check_mark:       | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| DWARF v5 | :x:                      | :x:                | :x:                | :x:                |
 
 | C++      | Structures         | Classes            | Unions | Accessibility      | Bitfields          | Inheritance        | Multi-Inheritance        | STL Types | Template Types |
 | -------- | :----------------: | :----------------: | :----: | :----------------: | :----------------: | :----------------: | :----------------------: | :-------: | :------------: |

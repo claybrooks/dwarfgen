@@ -81,6 +81,70 @@
                             "maxVal": 120
                         }
                     }
+                },
+                "baserecord": {
+                    "byteSize": 16,
+                    "members": {
+                        "_tag": {
+                            "type": "ada__tags__dispatch_table",
+                            "accessibility": "public",
+                            "byteOffset": 0,
+                            "byteSize": 8
+                        },
+                        "a": {
+                            "byteOffset": 8,
+                            "byteSize": 1,
+                            "type": "character",
+                            "accessibility": "public"
+                        },
+                        "b": {
+                            "byteOffset": 12,
+                            "byteSize": 4,
+                            "type": "integer",
+                            "accessibility": "public"
+                        }
+                    }
+                },
+                "derivedrecord": {
+                    "byteSize": 24,
+                    "baseStructures": {
+                        "records__baserecord": {
+                            "type": "records__baserecord",
+                            "byteOffset": 0,
+                            "accessibility": "public"
+                        }
+                    },
+                    "members": {
+                        "c": {
+                            "byteOffset": 16,
+                            "byteSize": 4,
+                            "type": "integer",
+                            "accessibility": "public"
+                        },
+                        "d": {
+                            "byteOffset": 20,
+                            "byteSize": 4,
+                            "type": "integer",
+                            "accessibility": "public"
+                        }
+                    }
+                },
+                "nontaggedderivedrecord": {
+                    "byteSize": 8,
+                    "members": {
+                        "a": {
+                            "byteOffset": 0,
+                            "byteSize": 4,
+                            "type": "integer",
+                            "accessibility": "public"
+                        },
+                        "b": {
+                            "byteOffset": 4,
+                            "byteSize": 4,
+                            "type": "integer",
+                            "accessibility": "public"
+                        }
+                    }
                 }
             }
         }

@@ -21,7 +21,7 @@ class FlatStructure:
         self.array_types = {}
         self.subrange_types = {}
         self.type_defs = {}
-
+        self.pointer_types = {}
 
 def data_member_location(val):
     if isinstance(val, list):
@@ -46,6 +46,13 @@ def v2_inheritance_accessibility_policy(die):
 
     if not die.has_accessibility():
         return 'private'
+
+    return ACCESSIBILITY[die.accessibility()]
+
+def ada_v2_inheritance_accessibility_policy(die):
+
+    if not die.has_accessibility():
+        return 'public'
 
     return ACCESSIBILITY[die.accessibility()]
 
@@ -99,6 +106,15 @@ def default_structure_member_data_policy(die):
     return {
         'name': die.name(),
         'typeOffset': die.type()
+    }
+
+def default_valid_pointertype_policy(die):
+    return die.has_byte_size() and die.has_type()
+
+def default_pointertype_data_policy(die):
+    return {
+        'size': die.byte_size(),
+        'type': die.type()
     }
 
 def default_static_structure_member_data_policy(die, _member):
@@ -190,6 +206,15 @@ def default_namespace_application_policy(namespace, die):
 
     return new_namespace
 
+def default_is_inheritance_policy(die):
+    return die.is_inheritance() or \
+        (DETECTED_LANGUAGE=='ADA' and die.is_member() and die.name() == '_parent')
+
+def ada_valid_struct_policy(die):
+    return default_valid_structure_policy(die) and \
+        ('ada__' not in die.name())
+
+
 def wrap_die(die):
 
     # 'DW_AT_*'
@@ -237,6 +262,7 @@ def wrap_die(die):
         'variable',
         "template_type_param",
         "inheritance",
+        "pointer_type"
     ]
 
     for tag_type in tag_types:
@@ -273,6 +299,7 @@ def apply_default_policies():
     global VALID_STRUCTURE_MEMBER_POLICY
     global VALID_STATIC_STRUCTURE_MEMBER_POLICY
     global VALID_INSTANCE_STRUCTURE_MEMBER_POLICY
+    global VALID_POINTERTYPE_POLICY
     global TYPEDEF_DATA_POLICY
     global ARRAY_DATA_POLICY
     global BASETYPE_DATA_POLICY
@@ -282,11 +309,13 @@ def apply_default_policies():
     global STRUCTURE_MEMBER_DATA_POLICY
     global STATIC_STRUCTURE_MEMBER_DATA_POLICY
     global INSTANCE_STRUCTURE_MEMBER_DATA_POLICY
+    global POINTERTYPE_DATA_POLICY
     global SUBRANGE_LOWERBOUND_POLICY
     global SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY
     global NAMESPACE_APPLICATION_POLICY
     global ACCESSIBILITY_POLICY
     global INHERITANCE_ACCESSIBILITY_POLICY
+    global IS_INHERITANCE_POLICY
     global NAME_POLICY
 
     VALID_STRUCTURE_POLICY = default_valid_structure_policy
@@ -298,6 +327,7 @@ def apply_default_policies():
     VALID_STRUCTURE_MEMBER_POLICY = default_valid_structure_member_policy
     VALID_STATIC_STRUCTURE_MEMBER_POLICY = default_valid_static_structure_member_policy
     VALID_INSTANCE_STRUCTURE_MEMBER_POLICY = default_valid_instance_structure_member_policy
+    VALID_POINTERTYPE_POLICY = default_valid_pointertype_policy
 
     TYPEDEF_DATA_POLICY = default_typedef_data_policy
     ARRAY_DATA_POLICY = default_array_data_policy
@@ -308,6 +338,7 @@ def apply_default_policies():
     STRUCTURE_MEMBER_DATA_POLICY = default_structure_member_data_policy
     STATIC_STRUCTURE_MEMBER_DATA_POLICY = default_static_structure_member_data_policy
     INSTANCE_STRUCTURE_MEMBER_DATA_POLICY = default_instance_structure_member_data_policy
+    POINTERTYPE_DATA_POLICY = default_pointertype_data_policy
 
     SUBRANGE_LOWERBOUND_POLICY = zero_indexed_subrange_lowerbound_policy
     SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY = default_subrange_data_for_array_parent_policy
@@ -316,6 +347,7 @@ def apply_default_policies():
 
     ACCESSIBILITY_POLICY = default_accessibility_policy
     INHERITANCE_ACCESSIBILITY_POLICY = default_accessibility_policy
+    IS_INHERITANCE_POLICY = default_is_inheritance_policy
 
     NAME_POLICY = default_name_policy
 
@@ -330,6 +362,12 @@ def apply_policies(version, language):
     if version == 2:
         ACCESSIBILITY_POLICY = v2_accessibility_policy
         INHERITANCE_ACCESSIBILITY_POLICY = v2_inheritance_accessibility_policy
+
+    if language == 'ADA':
+        if version == 2:
+            INHERITANCE_ACCESSIBILITY_POLICY = ada_v2_inheritance_accessibility_policy
+
+        VALID_STRUCTURE_POLICY = ada_valid_struct_policy
 
     if language == 'ADA' or language == 'FORTRAN':
         SUBRANGE_LOWERBOUND_POLICY = one_indexed_subrange_lowerbound_policy
@@ -399,7 +437,7 @@ def build_structure_child(structure, members, die):
     if die.is_template_type_param():
         #TODO implement some sort of template parameters
         pass
-    elif die.is_inheritance():
+    elif IS_INHERITANCE_POLICY(die):
         structure.add_base_structure(die.type(), INHERITANCE_ACCESSIBILITY_POLICY(die), die.data_member_location())
     elif die.is_member():
         if not VALID_STRUCTURE_MEMBER_POLICY(die):
@@ -459,6 +497,12 @@ def build_string_type(die):
 
     FLAT.string_types[die.offset] = STRINGTYPE_DATA_POLICY(die)
 
+def build_pointer_type(die):
+    if not VALID_POINTERTYPE_POLICY(die):
+        return
+
+    FLAT.pointer_types[die.offset] = POINTERTYPE_DATA_POLICY(die)
+
 def die_info_rec(die, namespace:Namespace):
     for child in die.iter_children():
         wrap_die(child)
@@ -471,6 +515,8 @@ def die_info_rec(die, namespace:Namespace):
             build_string_type(child)
         elif child.is_typedef():
             build_type_def(child)
+        elif child.is_pointer_type():
+            build_pointer_type(child)
         elif child.is_array_type():
             build_array_type(child)
         elif child.is_subrange_type():
@@ -501,13 +547,34 @@ def resolve_type(type_offset, flat):
         return FLAT.structures[type_offset]
     elif type_offset in FLAT.string_types:
         return FLAT.string_types[type_offset]
-    return None
+    elif type_offset in FLAT.type_defs:
+        return FLAT.type_defs[type_offset]
+    elif type_offset in FLAT.pointer_types:
+        return FLAT.pointer_types[type_offset]
+    raise ValueError
 
 def resolve_type_offset_name(type_offset, flat):
-    return resolve_type(type_offset, flat)['name']
+    try:
+        data = {}
+        while 'name' not in data:
+            data = resolve_type(type_offset, flat)
+            if 'type' in data:
+                type_offset = data['type']
+            else:
+                break
+
+        return data['name']
+    except ValueError:
+        logging.warning("Can't resolve name for type offset {}".format(type_offset))
+        raise
 
 def resolve_type_offset_size(type_offset, flat):
-    return resolve_type(type_offset, flat)['size']
+    try:
+        data = resolve_type(type_offset, flat)
+        return data['size']
+    except ValueError:
+        logging.warning("Can't resolve size for type offset {}".format(type_offset))
+        raise
 
 def resolve_structure(structure):
 
@@ -556,11 +623,14 @@ def ada_disperse_structures(namespace):
         name_key = '__'.join(namespaces) + '__' + name
         struct = namespace.structures.pop(name_key)
 
-        ns = namespace
-        for n in namespaces:
-            ns = namespace.namespaces[n]
-
-        ns.structures[name] = struct
+        try:
+            ns = namespace
+            for n in namespaces:
+                ns = namespace.namespaces[n]
+        except KeyError:
+            logging.warning("Skipping namespace \"{}\" because it wasn't resolved".format(n))
+        else:
+            ns.structures[name] = struct
 
 def resolve_namespace(namespace):
 

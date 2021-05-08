@@ -31,11 +31,33 @@ package Records is
         b at 0 range 1 .. 7;
     end record;
 
+    type BaseRecord is tagged record
+        a: Character;
+        b: Integer;
+    end record;
+
+    type DerivedRecord is new BaseRecord with record
+        c: Integer;
+        d: Integer;
+    end record;
+
+    type NonTaggedBaseRecord is record
+        a: Integer;
+        b: Integer;
+    end record;
+
+    type NonTaggedDerivedRecord is new NonTaggedBaseRecord;
+
     a : RecordA;
     b : RecordB;
     c : RecordC;
     d : RecordD;
     e : RecordE;
     f : RecordF;
+
+    --g: BaseRecord;
+    h: DerivedRecord;
+
+    i: NonTaggedDerivedRecord;
 
 end Records;
