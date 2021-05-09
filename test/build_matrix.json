@@ -23,7 +23,7 @@
         },
         "cpp": {
             "compilers": ["gcc"],
-            "compilerOptions": [],
+            "compilerOptions": ["std=c++11"],
             "linkerOptions": []
         },
         "fortran": {
