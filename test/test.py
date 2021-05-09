@@ -48,25 +48,28 @@ class TestDwarfGen(unittest.TestCase):
         setattr(
             class_inst,
             test_name,
-            lambda inst=class_inst, x=name, ns=namespace: inst.assert_struct_equal(x, ns)
+            lambda inst=class_inst, x=name, ns=namespace: inst.assert_equal(x, ns)
         )
 
     @classmethod
-    def __test_structures_from_jidl(cls, jidl_json, structures, namespaces):
+    def __test_structures_from_jidl(cls, jidl_json, tests, namespaces):
 
         for struct in jidl_json['structures']:
-            structures.append((struct, list(namespaces)))
+            tests.append((struct, list(namespaces)))
+
+        for enum in jidl_json['enumerations']:
+            tests.append((enum, list(namespaces)))
 
         for ns in jidl_json['namespaces']:
             new_namespace = list(namespaces) + [ns]
-            cls.__test_structures_from_jidl(jidl_json['namespaces'][ns], structures, new_namespace)
+            cls.__test_structures_from_jidl(jidl_json['namespaces'][ns], tests, new_namespace)
 
     @classmethod
     def structures_from_jidl(cls, jidl_json):
-        structures = []
+        tests = []
         namespaces = []
-        cls.__test_structures_from_jidl(jidl_json, structures, namespaces)
-        return structures
+        cls.__test_structures_from_jidl(jidl_json, tests, namespaces)
+        return tests
 
     def __init__(self, test_name, so_file, calculated_jidl, expected_jidl, *args, **kwargs):
         TestDwarfGen.add_test(self, test_name)
@@ -83,7 +86,7 @@ class TestDwarfGen(unittest.TestCase):
     def tearDown(self):
         super().tearDown()
 
-    def __get_structure(self, jidl, structure_name, namespace=None):
+    def __get(self, jidl, name, namespace=None):
         json_ptr = jidl
 
         for ns in namespace:
@@ -92,25 +95,27 @@ class TestDwarfGen(unittest.TestCase):
             except KeyError:
                 self.fail("Namespace {} doesn't exist".format(ns))
 
-        try:
-            return json_ptr['structures'][structure_name]
-        except KeyError:
-            self.fail("Structure {} doesn't exist in \n{}".format(structure_name, json.dumps(jidl, indent=4)))
+        if name in json_ptr['structures']:
+            return json_ptr['structures'][name]
+        elif name in json_ptr['enumerations']:
+            return json_ptr['enumerations'][name]
+        else:
+            self.fail("Structure {} doesn't exist in \n{}".format(name, json.dumps(jidl, indent=4)))
 
-    def __get_calculated_structure(self, structure_name, namespace=None):
-        return self.__get_structure(self.calculated_jidl, structure_name, namespace)
+    def __get_calculated(self, name, namespace=None):
+        return self.__get(self.calculated_jidl, name, namespace)
 
-    def __get_expected_structure(self, structure_name, namespace=None):
-        return self.__get_structure(self.expected_jidl, structure_name, namespace)
+    def __get_expected(self, name, namespace=None):
+        return self.__get(self.expected_jidl, name, namespace)
 
-    def assert_struct_equal(self, structure_name, namespace=None):
-        calculated_struct = self.__get_calculated_structure(structure_name, namespace)
-        expected_struct = self.__get_expected_structure(structure_name, namespace)
+    def assert_equal(self, name, namespace=None):
+        calculated = self.__get_calculated(name, namespace)
+        expected = self.__get_expected(name, namespace)
 
         self.assertEqual(
-            calculated_struct,
-            expected_struct,
-            msg="{}\nExpected\n{}\nCalculated\n{}".format(structure_name, json.dumps(expected_struct, indent=4), json.dumps(calculated_struct, indent=4))
+            calculated,
+            expected,
+            msg="{}\nExpected\n{}\nCalculated\n{}".format(name, json.dumps(expected, indent=4), json.dumps(calculated, indent=4))
         )
 
 

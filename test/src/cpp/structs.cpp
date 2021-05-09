@@ -1,4 +1,11 @@
 
+enum EnumA
+{
+    val_1,
+    val_2,
+    val_3,
+};
+
 typedef struct StructA {
     char a;
     int b;
@@ -162,3 +169,5 @@ ClassA class_a;
 ClassB class_b;
 ClassC class_c;
 ClassD class_d;
+
+EnumA myEnum;

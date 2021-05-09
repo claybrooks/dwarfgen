@@ -16,6 +16,7 @@ DEFAULT_LOWER_BOUND = {
 class FlatStructure:
     def __init__(self):
         self.structures = {}
+        self.enumerations = {}
         self.base_types = {}
         self.string_types = {}
         self.array_types = {}
@@ -93,6 +94,9 @@ def default_valid_basetype_policy(die):
 def default_valid_stringtype_policy(die):
     return die.has_byte_size()
 
+def default_valid_enumeration_policy(die):
+    return die.has_name() and die.has_byte_size() and die.has_type() and die.has_encoding()
+
 def default_valid_static_structure_member_policy(die):
     return VALID_STRUCTURE_MEMBER_POLICY(die) and die.has_external()
 
@@ -106,6 +110,24 @@ def default_structure_member_data_policy(die):
     return {
         'name': die.name(),
         'typeOffset': die.type()
+    }
+
+def default_enumeration_data_policy(die):
+    return {
+        'name': die.name(),
+        'encoding': die.encoding(),
+        'type': die.type(),
+        'size': die.byte_size(),
+        'values': {}
+    }
+
+def default_valid_enumerator_policy(die):
+    return die.has_name() and die.has_const_value()
+
+def default_enumerator_data_policy(die):
+    return {
+        'name': die.name(),
+        'value': die.const_value()
     }
 
 def default_valid_pointertype_policy(die):
@@ -231,6 +253,7 @@ def wrap_die(die):
         "artificial",
         "accessibility",
         "external",
+        "const_value"
     ]
 
     for attr in attributes:
@@ -262,7 +285,9 @@ def wrap_die(die):
         'variable',
         "template_type_param",
         "inheritance",
-        "pointer_type"
+        "pointer_type",
+        "enumeration_type",
+        "enumerator"
     ]
 
     for tag_type in tag_types:
@@ -300,6 +325,8 @@ def apply_default_policies():
     global VALID_STATIC_STRUCTURE_MEMBER_POLICY
     global VALID_INSTANCE_STRUCTURE_MEMBER_POLICY
     global VALID_POINTERTYPE_POLICY
+    global VALID_ENUMERATION_POLICY
+    global VALID_ENUMERATOR_POLICY
     global TYPEDEF_DATA_POLICY
     global ARRAY_DATA_POLICY
     global BASETYPE_DATA_POLICY
@@ -312,6 +339,8 @@ def apply_default_policies():
     global POINTERTYPE_DATA_POLICY
     global SUBRANGE_LOWERBOUND_POLICY
     global SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY
+    global ENUMERATION_DATA_POLICY
+    global ENUMERATOR_DATA_POLICY
     global NAMESPACE_APPLICATION_POLICY
     global ACCESSIBILITY_POLICY
     global INHERITANCE_ACCESSIBILITY_POLICY
@@ -328,6 +357,8 @@ def apply_default_policies():
     VALID_STATIC_STRUCTURE_MEMBER_POLICY = default_valid_static_structure_member_policy
     VALID_INSTANCE_STRUCTURE_MEMBER_POLICY = default_valid_instance_structure_member_policy
     VALID_POINTERTYPE_POLICY = default_valid_pointertype_policy
+    VALID_ENUMERATION_POLICY = default_valid_enumeration_policy
+    VALID_ENUMERATOR_POLICY = default_valid_enumerator_policy
 
     TYPEDEF_DATA_POLICY = default_typedef_data_policy
     ARRAY_DATA_POLICY = default_array_data_policy
@@ -339,6 +370,8 @@ def apply_default_policies():
     STATIC_STRUCTURE_MEMBER_DATA_POLICY = default_static_structure_member_data_policy
     INSTANCE_STRUCTURE_MEMBER_DATA_POLICY = default_instance_structure_member_data_policy
     POINTERTYPE_DATA_POLICY = default_pointertype_data_policy
+    ENUMERATION_DATA_POLICY = default_enumeration_data_policy
+    ENUMERATOR_DATA_POLICY = default_enumerator_data_policy
 
     SUBRANGE_LOWERBOUND_POLICY = zero_indexed_subrange_lowerbound_policy
     SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY = default_subrange_data_for_array_parent_policy
@@ -503,6 +536,35 @@ def build_pointer_type(die):
 
     FLAT.pointer_types[die.offset] = POINTERTYPE_DATA_POLICY(die)
 
+def build_enumeration_child(enumeration, values, die):
+    wrap_die(die)
+
+    if not VALID_ENUMERATOR_POLICY(die):
+        return
+
+    _value = enumeration.add_value(
+        die.name(), die.const_value()
+    )
+
+    return ENUMERATOR_DATA_POLICY(die)
+
+def build_enumeration_type(die, namespace):
+    if not VALID_ENUMERATION_POLICY(die):
+        return
+
+    enumeration = namespace.create_enumeration(
+        die.name(),
+        die.byte_size(),
+        die.type(),
+        die.encoding()
+    )
+
+    FLAT.enumerations[die.offset] = ENUMERATION_DATA_POLICY(die)
+    values = FLAT.enumerations[die.offset]['values']
+
+    for child in die.iter_children():
+        build_enumeration_child(enumeration, values, child)
+
 def die_info_rec(die, namespace:Namespace):
     for child in die.iter_children():
         wrap_die(child)
@@ -521,6 +583,8 @@ def die_info_rec(die, namespace:Namespace):
             build_array_type(child)
         elif child.is_subrange_type():
             build_subrange_type(child)
+        elif child.is_enumeration_type():
+            build_enumeration_type(child, namespace)
         elif child.is_namespace():
             new_namespace = NAMESPACE_APPLICATION_POLICY(namespace, child)
             die_info_rec(child, new_namespace)
@@ -575,6 +639,11 @@ def resolve_type_offset_size(type_offset, flat):
     except ValueError:
         logging.warning("Can't resolve size for type offset {}".format(type_offset))
         raise
+
+def resolve_enumeration(enumeration):
+    type_offset = enumeration.type
+    resolved_type = resolve_type_offset(type_offset, FLAT)
+    enumeration.type_str = resolve_type_offset_name(resolved_type, FLAT)
 
 def resolve_structure(structure):
 
@@ -633,6 +702,9 @@ def ada_disperse_structures(namespace):
             ns.structures[name] = struct
 
 def resolve_namespace(namespace):
+
+    for enumeration in namespace.enumerations.values():
+        resolve_enumeration(enumeration)
 
     for structure in namespace.structures.values():
         resolve_structure(structure)

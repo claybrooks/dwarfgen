@@ -146,8 +146,10 @@
                         }
                     }
                 }
-            }
+            },
+            "enumerations": {}
         }
     },
-    "structures": {}
+    "structures": {},
+    "enumerations": {}
 }

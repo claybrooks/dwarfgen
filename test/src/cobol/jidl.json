@@ -2,8 +2,10 @@
     "namespaces": {
         "records": {
             "namespaces": {},
-            "structures": {}
+            "structures": {},
+            "enumerations": {}
         }
     },
-    "structures": {}
+    "structures": {},
+    "enumerations": {}
 }
