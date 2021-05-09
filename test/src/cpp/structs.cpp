@@ -1,10 +1,24 @@
 
-enum EnumA
+typedef enum class EnumA
 {
     val_1,
     val_2,
     val_3,
-};
+} EnumA;
+
+typedef enum class EnumB
+{
+    val_1=1,
+    val_2=0,
+    val_3=5,
+} EnumB;
+
+typedef enum EnumC
+{
+    EnumC__val_1=1,
+    EnumC__val_2=0,
+    EnumC__val_3=5,
+} EnumC;
 
 typedef struct StructA {
     char a;
@@ -146,6 +160,10 @@ typedef struct StructNMultiDerivedMixAccessibility: public StructN, private Stru
     int d;
 } StructNMultiDerivedMixAccessibility;
 
+typedef struct StructWithEnum {
+    EnumA a;
+} StructWithEnum;
+
 StructA struct_a;
 StructB struct_b;
 Namespace::StructC struct_c;
@@ -165,9 +183,13 @@ StructNDerivedProtected struct_n_derived_protected;
 StructNMultiDerived struct_n_multi_derived;
 StructNMultiDerivedMixAccessibility structd_n_multi_derived_mix_accessibility;
 
+StructWithEnum structWithEnum;
+
 ClassA class_a;
 ClassB class_b;
 ClassC class_c;
 ClassD class_d;
 
-EnumA myEnum;
+EnumA enum_a;
+EnumB enum_b;
+EnumC enum_c;

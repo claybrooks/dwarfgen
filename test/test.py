@@ -86,7 +86,7 @@ class TestDwarfGen(unittest.TestCase):
     def tearDown(self):
         super().tearDown()
 
-    def __get(self, jidl, name, namespace=None):
+    def __get(self, jidl, name, debug_name, namespace=None):
         json_ptr = jidl
 
         for ns in namespace:
@@ -100,13 +100,13 @@ class TestDwarfGen(unittest.TestCase):
         elif name in json_ptr['enumerations']:
             return json_ptr['enumerations'][name]
         else:
-            self.fail("Structure {} doesn't exist in \n{}".format(name, json.dumps(jidl, indent=4)))
+            self.fail("Structure {} doesn't exist in debug_name".format(name, debug_name))
 
     def __get_calculated(self, name, namespace=None):
-        return self.__get(self.calculated_jidl, name, namespace)
+        return self.__get(self.calculated_jidl, name, "calculated", namespace)
 
     def __get_expected(self, name, namespace=None):
-        return self.__get(self.expected_jidl, name, namespace)
+        return self.__get(self.expected_jidl, name, "expected", namespace)
 
     def assert_equal(self, name, namespace=None):
         calculated = self.__get_calculated(name, namespace)

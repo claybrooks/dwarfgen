@@ -615,6 +615,8 @@ def resolve_type(type_offset, flat):
         return FLAT.type_defs[type_offset]
     elif type_offset in FLAT.pointer_types:
         return FLAT.pointer_types[type_offset]
+    elif type_offset in FLAT.enumerations:
+        return FLAT.enumerations[type_offset]
     raise ValueError
 
 def resolve_type_offset_name(type_offset, flat):
