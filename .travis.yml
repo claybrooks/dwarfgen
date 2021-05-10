@@ -17,5 +17,5 @@ jobs:
         - python3 fulltest.py
       env:
         - COMPILER=g++-9
-        - CC=gcc=9
-        - CXX=g++-9
+        - CMAKE_C_COMPILER =gcc=9
+        - CMAKE_CXX_COMPILER =g++-9
