@@ -1,6 +1,9 @@
 language: python
 os: linux
 dist: xenial
+packages:
+  - gcc-9
+  - g++-9
 jobs:
   include:
     - language: python
