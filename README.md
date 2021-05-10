@@ -143,6 +143,7 @@ pip install dwarfgen
 
 ## Language-Feature Support
 - :heavy_check_mark: - Implemented
+- :warning: - Results may vary
 - :x: - Not implemented
 
 | Common   | Accessibility      | Arrays             | Multi-dimensional Arrays | Custom Types        |
@@ -159,12 +160,12 @@ pip install dwarfgen
 | DWARF v4 | :heavy_check_mark:       | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | DWARF v5 | :x:                      | :x:                | :x:                | :x:                |
 
-| C++      | Enumerations       | Structures         | Classes            | Unions | Bitfields          | Inheritance        | Multi-Inheritance        | STL Types | Template Types |
-| -------- | :----------------: | :----------------: | :----------------: | :----: | :----------------: | :----------------: | :----------------------: | :-------: | :------------: |
-| DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :x:    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :x:       | :x:            |
-| DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :x:    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :x:       | :x:            |
-| DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :x:    | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :x:       | :x:            |
-| DWARF v5 | :x:                | :x:                | :x:                | :x:    | :x:                | :x:                | :x:                      | :x:       | :x:            |
+| C++      | Enumerations       | Structures         | Classes            | Unions             | Bitfields          | Inheritance        | Multi-Inheritance        | STL Types | Template Types |
+| -------- | :----------------: | :----------------: | :----------------: | :----:             | :----------------: | :----------------: | :----------------------: | :-------: | :------------: |
+| DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :warning: | :warning:      |
+| DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :warning: | :warning:      |
+| DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :warning: | :warning:      |
+| DWARF v5 | :x:                | :x:                | :x:                | :heavy_check_mark: | :x:                | :x:                | :x:                      | :warning: | :warning:      |
 
 
 ## Examples
