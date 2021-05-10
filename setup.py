@@ -10,8 +10,12 @@ install_requires = [
 
 setuptools.setup(
     name='dwarfgen',
-    version='0.1',
-    packages=['dwarfgen'],
+    version='0.2',
+    packages=[
+        'dwarfgen',
+        'dwarfgen.src',
+        'dwarfgen.src.lang_generators'
+    ],
     author="Clay Brooks",
     author_email="clay_brooks@outlook.com",
     description="IDL/Code generation utility",
