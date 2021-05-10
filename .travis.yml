@@ -4,6 +4,10 @@ dist: xenial
 packages:
   - gcc-9
   - g++-9
+env:
+  - COMPILER=g++-9
+  - CC=gcc=9
+  - CXX=g++-9
 jobs:
   include:
     - language: python
