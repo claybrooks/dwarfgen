@@ -165,7 +165,7 @@ pip install dwarfgen
 | DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :warning: | :warning:      |
 | DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :warning: | :warning:      |
 | DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :warning: | :warning:      |
-| DWARF v5 | :x:                | :x:                | :x:                | :heavy_check_mark: | :x:                | :x:                | :x:                      | :warning: | :warning:      |
+| DWARF v5 | :x:                | :x:                | :x:                | :heavy_check_mark: | :x:                | :x:                | :x:                      | :x:       | :x:            |
 
 
 ## Examples
