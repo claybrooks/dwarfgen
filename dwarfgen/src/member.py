@@ -27,7 +27,8 @@ class Member:
         if self.is_static:
             return
 
-        json['byteOffset'] = self.byte_offset
+        if self.byte_offset is not None:
+            json['byteOffset'] = self.byte_offset
 
         if self.bit_offset is not None:
             json['bitOffset'] = self.bit_offset

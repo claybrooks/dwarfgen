@@ -3,9 +3,11 @@
         "records": {
             "namespaces": {},
             "structures": {},
-            "enumerations": {}
+            "enumerations": {},
+            "unions": {}
         }
     },
     "structures": {},
-    "enumerations": {}
+    "enumerations": {},
+    "unions": {}
 }

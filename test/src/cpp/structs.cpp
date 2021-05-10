@@ -1,3 +1,16 @@
+#include <array>
+
+typedef struct StdArrayStruct
+{
+    std::array<char, 4> a;
+} StdArrayStruct;
+StdArrayStruct stdArrayStruct;
+
+typedef union UnionA
+{
+    char bytes[4];
+    float a;
+} UnionA;
 
 typedef enum class EnumA
 {
@@ -163,6 +176,8 @@ typedef struct StructNMultiDerivedMixAccessibility: public StructN, private Stru
 typedef struct StructWithEnum {
     EnumA a;
 } StructWithEnum;
+
+UnionA union_a;
 
 StructA struct_a;
 StructB struct_b;

@@ -147,9 +147,11 @@
                     }
                 }
             },
-            "enumerations": {}
+            "enumerations": {},
+            "unions": {}
         }
     },
     "structures": {},
-    "enumerations": {}
+    "enumerations": {},
+    "unions": {}
 }

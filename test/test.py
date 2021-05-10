@@ -60,6 +60,9 @@ class TestDwarfGen(unittest.TestCase):
         for enum in jidl_json['enumerations']:
             tests.append((enum, list(namespaces)))
 
+        for union in jidl_json['unions']:
+            tests.append((union, list(namespaces)))
+
         for ns in jidl_json['namespaces']:
             new_namespace = list(namespaces) + [ns]
             cls.__test_structures_from_jidl(jidl_json['namespaces'][ns], tests, new_namespace)
@@ -99,8 +102,10 @@ class TestDwarfGen(unittest.TestCase):
             return json_ptr['structures'][name]
         elif name in json_ptr['enumerations']:
             return json_ptr['enumerations'][name]
+        elif name in json_ptr['unions']:
+            return json_ptr['unions'][name]
         else:
-            self.fail("Structure {} doesn't exist in debug_name".format(name, debug_name))
+            self.fail("{} doesn't exist in {}".format(name, debug_name))
 
     def __get_calculated(self, name, namespace=None):
         return self.__get(self.calculated_jidl, name, "calculated", namespace)

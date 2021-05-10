@@ -19,7 +19,8 @@
                             }
                         }
                     },
-                    "enumerations": {}
+                    "enumerations": {},
+                    "unions": {}
                 }
             },
             "structures": {
@@ -65,7 +66,8 @@
                     }
                 }
             },
-            "enumerations": {}
+            "enumerations": {},
+            "unions": {}
         }
     },
     "structures": {
@@ -426,6 +428,17 @@
                     "accessibility": "public"
                 }
             }
+        },
+        "StdArrayStruct": {
+            "byteSize": 4,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 4,
+                    "type": "std::array<char, 4>",
+                    "accessibility": "public"
+                }
+            }
         }
     },
     "enumerations": {
@@ -454,6 +467,25 @@
                 "EnumC__val_1": 1,
                 "EnumC__val_2": 0,
                 "EnumC__val_3": 5
+            }
+        }
+    },
+    "unions": {
+        "UnionA": {
+            "byteSize": 4,
+            "members": {
+                "bytes": {
+                    "byteSize": 4,
+                    "type": "array of char",
+                    "lowerBound": 0,
+                    "upperBound": 3,
+                    "accessibility": "public"
+                },
+                "a": {
+                    "byteSize": 4,
+                    "type": "float",
+                    "accessibility": "public"
+                }
             }
         }
     }

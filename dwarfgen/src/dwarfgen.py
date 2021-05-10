@@ -17,12 +17,15 @@ class FlatStructure:
     def __init__(self):
         self.structures = {}
         self.enumerations = {}
+        self.unions = {}
         self.base_types = {}
         self.string_types = {}
         self.array_types = {}
         self.subrange_types = {}
         self.type_defs = {}
         self.pointer_types = {}
+        self.ignored_types = {}
+        self.const_types = {}
 
 def data_member_location(val):
     if isinstance(val, list):
@@ -65,21 +68,61 @@ def default_accessibility_policy(die):
             return 'public'
         elif parent.is_class_type():
             return "private"
+        elif parent.is_union_type():
+            return "public"
         else:
             raise ValueError("Unknown Default Accessibility for {}".format(parent))
 
     return ACCESSIBILITY[die.accessibility()]
 
+def default_structure_data_policy(die):
+    size = 0
+    if die.has_byte_size():
+        size = die.byte_size()
+
+    return {
+        'name': NAME_POLICY(die),
+        'size': size,
+        'members': {}
+    }
+
 def default_valid_structure_policy(die):
-    return die.has_name() and die.has_byte_size() and not die.is_artificial()
+    return (die.has_name() or die.has_MIPS_linkage_name() or die.has_linkage_name()) and not die.is_artificial()
 
 def default_valid_typedef_policy(die):
-    return die.has_type() and die.has_name()
+    return die.has_name()
 
 def default_typedef_data_policy(die):
     return {
         'name': die.name(),
-        'type': die.type()
+        'type': die.type() if die.has_type() else ""
+    }
+
+def default_valid_consttype_policy(die):
+    return die.has_type()
+
+def default_consttype_data_policy(die):
+    return {
+        "type": die.type()
+    }
+
+def default_valid_union_member_policy(die):
+    return die.has_name() and die.has_type()
+
+def default_union_member_data_policy(die):
+    return {
+        "name": die.name(),
+        "type": die.type()
+    }
+
+def default_valid_union_policy(die):
+    return die.has_byte_size()
+
+def default_union_data_policy(die):
+    return {
+        "name": NO_NS_NAME_POLICY(die),
+        "size": die.byte_size(),
+        "members": {}
     }
 
 def default_valid_array_policy(die):
@@ -131,12 +174,12 @@ def default_enumerator_data_policy(die):
     }
 
 def default_valid_pointertype_policy(die):
-    return die.has_byte_size() and die.has_type()
+    return die.has_byte_size()
 
 def default_pointertype_data_policy(die):
     return {
         'size': die.byte_size(),
-        'type': die.type()
+        'type': die.type() if die.has_type() else str("void")
     }
 
 def default_static_structure_member_data_policy(die, _member):
@@ -189,25 +232,33 @@ def default_subrange_data_policy(die):
         'upper_bound': die.upper_bound(),
     }
 
-def default_structure_data_policy(die):
-    return {
-        'name': NAME_POLICY(die),
-        'size': die.byte_size(),
-        'members': {}
-    }
-
 def zero_indexed_subrange_lowerbound_policy(die):
     return die.lower_bound() if die.has_lower_bound() else 0
 
 def one_indexed_subrange_lowerbound_policy(die):
     return die.lower_bound() if die.has_lower_bound() else 1
 
+def default_no_ns_name_policy(die):
+    name = ''
+    if die.has_name():
+        name = die.name()
+    elif die.has_MIPS_linkage_name():
+        name = die.MIPS_linkage_name()
+    elif die.has_linkage_name():
+        name = die.linkage_name()
+    else:
+        name = "UNKNOWN"
+
+    return name
+
 def default_name_policy(die):
 
+    name = NO_NS_NAME_POLICY(die)
+
     if die.has_namespace():
-        return die.namespace + '::' + die.name()
+        return die.namespace + '::' + name
     else:
-        return die.name()
+        return name
 
 def default_subrange_data_for_array_parent_policy(die, flat):
     parent = die.get_parent()
@@ -253,7 +304,7 @@ def wrap_die(die):
         "artificial",
         "accessibility",
         "external",
-        "const_value"
+        "const_value",
     ]
 
     for attr in attributes:
@@ -263,7 +314,9 @@ def wrap_die(die):
     # 'DW_AT_*' but also decode .value
     decode_attributes = [
         'producer',
-        'name'
+        'name',
+        "MIPS_linkage_name",
+        "linkage_name"
     ]
 
     for attr in decode_attributes:
@@ -274,6 +327,7 @@ def wrap_die(die):
     tag_types = [
         'structure_type',
         'class_type',
+        "union_type",
         'member',
         'base_type',
         'string_type',
@@ -287,7 +341,8 @@ def wrap_die(die):
         "inheritance",
         "pointer_type",
         "enumeration_type",
-        "enumerator"
+        "enumerator",
+        "const_type"
     ]
 
     for tag_type in tag_types:
@@ -346,6 +401,13 @@ def apply_default_policies():
     global INHERITANCE_ACCESSIBILITY_POLICY
     global IS_INHERITANCE_POLICY
     global NAME_POLICY
+    global VALID_CONSTTYPE_POLICY
+    global CONSTTYPE_DATA_POLICY
+    global VALID_UNION_POLICY
+    global UNION_DATA_POLICY
+    global VALID_UNION_MEMBER_POLICY
+    global UNION_MEMBER_DATA_POLICY
+    global NO_NS_NAME_POLICY
 
     VALID_STRUCTURE_POLICY = default_valid_structure_policy
     VALID_TYPEDEF_POLICY = default_valid_typedef_policy
@@ -359,7 +421,13 @@ def apply_default_policies():
     VALID_POINTERTYPE_POLICY = default_valid_pointertype_policy
     VALID_ENUMERATION_POLICY = default_valid_enumeration_policy
     VALID_ENUMERATOR_POLICY = default_valid_enumerator_policy
+    VALID_CONSTTYPE_POLICY = default_valid_consttype_policy
+    VALID_UNION_POLICY = default_valid_union_policy
+    VALID_UNION_MEMBER_POLICY = default_valid_union_member_policy
 
+    UNION_MEMBER_DATA_POLICY = default_union_member_data_policy
+    UNION_DATA_POLICY = default_union_data_policy
+    CONSTTYPE_DATA_POLICY = default_consttype_data_policy
     TYPEDEF_DATA_POLICY = default_typedef_data_policy
     ARRAY_DATA_POLICY = default_array_data_policy
     BASETYPE_DATA_POLICY = default_basetype_data_policy
@@ -382,6 +450,7 @@ def apply_default_policies():
     INHERITANCE_ACCESSIBILITY_POLICY = default_accessibility_policy
     IS_INHERITANCE_POLICY = default_is_inheritance_policy
 
+    NO_NS_NAME_POLICY = default_no_ns_name_policy
     NAME_POLICY = default_name_policy
 
 
@@ -464,7 +533,7 @@ def build_base_type(die):
 
     FLAT.base_types[die.offset] = BASETYPE_DATA_POLICY(die)
 
-def build_structure_child(structure, members, die):
+def build_structure_child(structure, die, namespace):
     wrap_die(die)
 
     if die.is_template_type_param():
@@ -490,6 +559,8 @@ def build_structure_child(structure, members, die):
     elif die.is_structure_type():
         #members[parent_name] = die.type()
         pass
+    elif die.is_union_type():
+        build_union_type(die, namespace)
 
 def build_structure_type(die, namespace):
 
@@ -497,13 +568,46 @@ def build_structure_type(die, namespace):
     if not VALID_STRUCTURE_POLICY(die):
         return
 
-    structure = namespace.create_structure(die.name(), die.byte_size())
+    structure = namespace.create_structure(NO_NS_NAME_POLICY(die), die.byte_size() if die.has_byte_size() else 0)
 
     FLAT.structures[die.offset] = STRUCTURE_DATA_POLICY(die)
     members = FLAT.structures[die.offset]['members']
 
     for child in die.iter_children():
-        build_structure_child(structure, members, child)
+        build_structure_child(structure, child, namespace)
+
+def build_union_child(union, members, die):
+    wrap_die(die)
+
+    if die.is_template_type_param():
+        #TODO implement some sort of template parameters
+        pass
+    elif die.is_member():
+        if not VALID_UNION_MEMBER_POLICY(die):
+            return
+
+        _member = union.create_member(
+            die.name(), die.type()
+        )
+        _member.accessibility = ACCESSIBILITY_POLICY(die)
+
+        return UNION_MEMBER_DATA_POLICY(die)
+    elif die.is_subrange_type():
+        build_subrange_type(die)
+
+def build_union_type(die, namespace):
+
+    # invalid structure
+    if not VALID_UNION_POLICY(die):
+        return
+
+    union = namespace.create_union(NO_NS_NAME_POLICY(die), die.byte_size())
+
+    FLAT.unions[die.offset] = UNION_DATA_POLICY(die)
+    members = FLAT.unions[die.offset]['members']
+
+    for child in die.iter_children():
+        build_union_child(union, members, child)
 
 def build_type_def(die):
     if not VALID_TYPEDEF_POLICY(die):
@@ -565,12 +669,20 @@ def build_enumeration_type(die, namespace):
     for child in die.iter_children():
         build_enumeration_child(enumeration, values, child)
 
+def build_const_type(die):
+    if not VALID_CONSTTYPE_POLICY(die):
+        return
+
+    FLAT.const_types[die.offset] = CONSTTYPE_DATA_POLICY(die)
+
 def die_info_rec(die, namespace:Namespace):
     for child in die.iter_children():
         wrap_die(child)
 
         if child.is_structure_like():
             build_structure_type(child, namespace)
+        elif child.is_union_type():
+            build_union_type(child, namespace)
         elif child.is_base_type():
             build_base_type(child)
         elif child.is_string_type():
@@ -585,6 +697,8 @@ def die_info_rec(die, namespace:Namespace):
             build_subrange_type(child)
         elif child.is_enumeration_type():
             build_enumeration_type(child, namespace)
+        elif child.is_const_type():
+            build_const_type(child)
         elif child.is_namespace():
             new_namespace = NAMESPACE_APPLICATION_POLICY(namespace, child)
             die_info_rec(child, new_namespace)
@@ -609,6 +723,8 @@ def resolve_type(type_offset, flat):
         return FLAT.base_types[type_offset]
     elif type_offset in FLAT.structures:
         return FLAT.structures[type_offset]
+    elif type_offset in FLAT.unions:
+        return FLAT.unions[type_offset]
     elif type_offset in FLAT.string_types:
         return FLAT.string_types[type_offset]
     elif type_offset in FLAT.type_defs:
@@ -617,9 +733,14 @@ def resolve_type(type_offset, flat):
         return FLAT.pointer_types[type_offset]
     elif type_offset in FLAT.enumerations:
         return FLAT.enumerations[type_offset]
+    elif type_offset in FLAT.const_types:
+        return FLAT.const_types[type_offset]
+    elif type_offset in FLAT.array_types:
+        return FLAT.array_types[type_offset]
     raise ValueError
 
 def resolve_type_offset_name(type_offset, flat):
+
     try:
         data = {}
         while 'name' not in data:
@@ -629,6 +750,12 @@ def resolve_type_offset_name(type_offset, flat):
             else:
                 break
 
+            # TODO this is a hack to fix some DW_TAG_pointer_types not having
+            # a type offset.  The assumption is this is 'void*', but it's not
+            # validated yet
+            if isinstance(type_offset, str):
+                return type_offset
+
         return data['name']
     except ValueError:
         logging.warning("Can't resolve name for type offset {}".format(type_offset))
@@ -637,15 +764,45 @@ def resolve_type_offset_name(type_offset, flat):
 def resolve_type_offset_size(type_offset, flat):
     try:
         data = resolve_type(type_offset, flat)
+        while 'size' not in data:
+            data = resolve_type(type_offset, flat)
+            if 'type' in data:
+                type_offset = data['type']
+            else:
+                break
+
         return data['size']
     except ValueError:
-        logging.warning("Can't resolve size for type offset {}".format(type_offset))
+        logging.warning("Can't resolve name for type offset {}".format(type_offset))
         raise
 
 def resolve_enumeration(enumeration):
     type_offset = enumeration.type
     resolved_type = resolve_type_offset(type_offset, FLAT)
     enumeration.type_str = resolve_type_offset_name(resolved_type, FLAT)
+
+def resolve_union(union):
+
+    for member in union.members.values():
+        type_offset = member.type_offset
+        resolved_type = resolve_type_offset(type_offset, FLAT)
+
+        member.type_str = resolve_type_offset_name(resolved_type, FLAT)
+        if member.bit_size is None:
+            member.byte_size = resolve_type_offset_size(resolved_type, FLAT)
+
+        if type_offset in FLAT.array_types:
+            member.upper_bound = FLAT.array_types[type_offset]['upper_bound']
+            member.lower_bound = FLAT.array_types[type_offset]['lower_bound']
+
+            member.type_str = 'array of ' + member.type_str
+            member.byte_size = (member.upper_bound - member.lower_bound + 1) * member.byte_size
+            if member.bit_size is not None:
+                member.bit_size = None
+
+        if type_offset in FLAT.subrange_types:
+            member.max_val = FLAT.subrange_types[type_offset]['upper_bound']
+            member.min_val = FLAT.subrange_types[type_offset]['lower_bound']
 
 def resolve_structure(structure):
 
@@ -710,6 +867,9 @@ def resolve_namespace(namespace):
 
     for structure in namespace.structures.values():
         resolve_structure(structure)
+
+    for union in namespace.unions.values():
+        resolve_union(union)
 
     for n in namespace.namespaces.values():
         resolve_namespace(n)

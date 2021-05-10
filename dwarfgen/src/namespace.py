@@ -1,6 +1,7 @@
 import json
 from .structure import Structure
 from .enumeration import Enumeration
+from .union import Union
 
 class Namespace:
     def __init__(self, name):
@@ -8,6 +9,7 @@ class Namespace:
         self.namespaces = {}
         self.structures = {}
         self.enumerations = {}
+        self.unions = {}
 
     def create_namespace(self, name):
         if name not in self.namespaces:
@@ -24,10 +26,16 @@ class Namespace:
             self.enumerations[name] = Enumeration(name, size, type, encoding)
         return self.enumerations[name]
 
+    def create_union(self, name, size):
+        if name not in self.unions:
+            self.unions[name] = Union(name, size)
+        return self.unions[name]
+
     def to_json(self, json):
         json['namespaces'] = self.obj_to_json(json, self.namespaces)
         json['structures'] = self.obj_to_json(json, self.structures)
         json['enumerations'] = self.obj_to_json(json, self.enumerations)
+        json['unions'] = self.obj_to_json(json, self.unions)
 
     def obj_to_json(self, json, obj):
         out_obj = {}
