@@ -1,4 +1,4 @@
-language: python
+language: generic
 os: linux
 dist: xenial
 jobs:
@@ -14,3 +14,11 @@ jobs:
       script:
         - cd test
         - python3 fulltest.py
+
+matrix:
+  include:
+    - env: CXX=g++-9 CC=gcc-9
+      addons:
+        apt:
+          packages:
+            - g++-9
