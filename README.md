@@ -25,6 +25,8 @@ typedef struct MyStruct
 // output of 'dwarfgen --file sample.o --to-idl jidl --to-idl-dest ~/jidl'
 {
     "namespaces": {},
+    "enumerations": {},
+    "unions": {},
     "structures": {
         "MyStruct": {
             "byteSize": 8,
@@ -118,9 +120,7 @@ directly.  The simple reason is that you would have to re-implement all compiler
 pip install dwarfgen
 ```
 
-## Support Matrices
-
-### DWARF Version Support
+# DWARF Version Support
 
 - :heavy_check_mark: - Language specific features implemented
 - :warning: - Core DWARF features implemented, language specific features are not implemented
@@ -133,7 +133,7 @@ pip install dwarfgen
 | DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning:          | :warning:          |
 | DWARF v5 | :x:                | :x:                | :x:                | :x:                | :x:                |
 
-### Compiler Support
+# Compiler Support
 
 - :heavy_check_mark: - Tested
 - :warning: - Untested
@@ -146,18 +146,18 @@ pip install dwarfgen
 | DWARF v4 | :heavy_check_mark: | :warning:          |
 | DWARF v5 | :x:                | :x:                |
 
-### Language-Feature Support
+# Language-Feature Support
 
 - :heavy_check_mark: - Implemented
 - :warning: - Results may vary
 - :x: - Not implemented
 
-| Common   | Accessibility      | Arrays             | Multi-dimensional Arrays | Custom Types        |
-| -------- | :----------------: | :----------------: | :----------------------: | :-----------------: |
-| DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :heavy_check_mark:  |
-| DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :heavy_check_mark:  |
-| DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :heavy_check_mark:  |
-| DWARF v5 | :x:                | :x:                | :x:                      | :x:                 |
+| Common   | Accessibility      | Arrays             | Custom Types        |
+| -------- | :----------------: | :----------------: | :-----------------: |
+| DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:  |
+| DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:  |
+| DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:  |
+| DWARF v5 | :x:                | :x:                | :x:                 |
 
 | Ada      | Constrained Types        | Records            | Repspec            | Tagged Types       |
 | -------- | :----------------------: | :----------------: | :----------------: | :----------------: |
@@ -166,12 +166,19 @@ pip install dwarfgen
 | DWARF v4 | :heavy_check_mark:       | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | DWARF v5 | :x:                      | :x:                | :x:                | :x:                |
 
-| C++      | Enumerations       | Structures         | Classes            | Unions             | Bitfields          | Inheritance        | Multi-Inheritance        | STL       | Templates |
-| -------- | :----------------: | :----------------: | :----------------: | :----:             | :----------------: | :----------------: | :----------------------: | :-------: | :------------: |
-| DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :warning: | :warning:      |
-| DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :warning: | :warning:      |
-| DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :warning: | :warning:      |
-| DWARF v5 | :x:                | :x:                | :x:                | :x:                | :x:                | :x:                | :x:                      | :x:       | :x:            |
+| C        | Enumerations       | Structures         | Unions             | Bitfields          |
+| -------- | :----------------: | :----------------: | :----:             | :----------------: |
+| DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| DWARF v5 | :x:                | :x:                | :x:                | :x:                |
+
+| C++      | Enumerations       | Structures         | Classes            | Unions             | Bitfields          | Inheritance        | STL       | Templates      |
+| -------- | :----------------: | :----------------: | :----------------: | :----:             | :----------------: | :----------------: | :-------: | :------------: |
+| DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning: | :warning:      |
+| DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning: | :warning:      |
+| DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning: | :warning:      |
+| DWARF v5 | :x:                | :x:                | :x:                | :x:                | :x:                | :x:                | :x:       | :x:            |
 
 ## Examples
 
