@@ -208,6 +208,18 @@ typedef struct StructT
     StructS* a;
 } StructT;
 
+typedef struct StructU
+{
+    StructU(char* pA): a(pA) {}
+    char*& a;
+} StructU;
+
+typedef struct StructV
+{
+    StructV(char*** pA): a(pA) {}
+    char***& a;
+} StructV;
+
 UnionA union_a;
 
 StructA struct_a;
@@ -236,6 +248,13 @@ StructT struct_t;
 
 char t;
 StructR struct_r(&t);
+
+char a = 'a';
+char* pA = &a;
+char** ppA = &pA;
+char*** pppA = &ppA;
+StructU struct_u(pA);
+StructV struct_v(pppA);
 
 StructWithEnum structWithEnum;
 

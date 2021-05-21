@@ -892,12 +892,19 @@ def resolve(base_type):
             if member.bit_size is not None:
                 member.byte_size = None
 
+        if type_offset in FLAT.reference_types:
+
+            type_ref = FLAT.reference_types[type_offset]['type']
+
+            if type_ref in FLAT.pointer_types:
+                count = get_pointer_chain_count(type_ref)
+                member.type_str += (" " + " ".join(["pointer"]*count))
+
+            member.type_str += " reference"
+
         if type_offset in FLAT.pointer_types:
             count = get_pointer_chain_count(type_offset)
             member.type_str += (" " + " ".join(["pointer"]*count))
-
-        if type_offset in FLAT.reference_types:
-            member.type_str += " reference"
 
         if type_offset in FLAT.subrange_types:
             member.max_val = FLAT.subrange_types[type_offset]['upper_bound']

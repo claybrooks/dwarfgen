@@ -564,6 +564,28 @@
                     "accessibility": "public"
                 }
             }
+        },
+        "StructU": {
+            "byteSize": 8,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 8,
+                    "type": "char pointer reference",
+                    "accessibility": "public"
+                }
+            }
+        },
+        "StructV": {
+            "byteSize": 8,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 8,
+                    "type": "char pointer pointer pointer reference",
+                    "accessibility": "public"
+                }
+            }
         }
     },
     "enumerations": {
