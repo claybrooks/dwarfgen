@@ -522,6 +522,7 @@ def apply_policies(version, language):
     global ACCESSIBILITY_POLICY
     global SUBRANGE_LOWERBOUND_POLICY
     global INHERITANCE_ACCESSIBILITY_POLICY
+    global VALID_STRUCTURE_POLICY
 
     if version == 2:
         ACCESSIBILITY_POLICY = v2_accessibility_policy
@@ -632,7 +633,6 @@ def build_structure_type(die, namespace):
     structure = namespace.create_structure(NO_NS_NAME_POLICY(die), die.byte_size() if die.has_byte_size() else 0)
 
     FLAT.structures[die.offset] = STRUCTURE_DATA_POLICY(die)
-    members = FLAT.structures[die.offset]['members']
 
     for child in die.iter_children():
         build_structure_child(structure, child, namespace)
@@ -810,6 +810,14 @@ def resolve_type(type_offset, flat):
         return FLAT.array_types[type_offset]
     raise ValueError
 
+def get_pointer_chain_count(type_offset):
+    count = 0
+    while type_offset in FLAT.pointer_types:
+        type_offset = FLAT.pointer_types[type_offset]['type']
+        count += 1
+
+    return count
+
 def resolve_type_offset_name(type_offset, flat):
 
     try:
@@ -885,7 +893,9 @@ def resolve(base_type):
                 member.byte_size = None
 
         if type_offset in FLAT.pointer_types:
-            member.type_str += " pointer"
+            count = get_pointer_chain_count(type_offset)
+            for i in range(count):
+                member.type_str += " pointer"
 
         if type_offset in FLAT.reference_types:
             member.type_str += " reference"

@@ -198,6 +198,11 @@ typedef struct StructR
     char& a;
 } StructR;
 
+typedef struct StructS
+{
+    char** a;
+} StructS;
+
 UnionA union_a;
 
 StructA struct_a;
@@ -221,6 +226,7 @@ StructNMultiDerivedMixAccessibility structd_n_multi_derived_mix_accessibility;
 StructO struct_o;
 StructP struct_p;
 StructQ struct_q;
+StructS struct_s;
 
 char t;
 StructR struct_r(&t);

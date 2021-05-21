@@ -156,6 +156,17 @@
                     "accessibility": "public"
                 }
             }
+        },
+        "StructI": {
+            "byteSize": 8,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 8,
+                    "type": "char pointer pointer",
+                    "accessibility": "public"
+                }
+            }
         }
     },
     "enumerations": {
