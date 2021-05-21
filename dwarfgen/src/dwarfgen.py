@@ -894,8 +894,7 @@ def resolve(base_type):
 
         if type_offset in FLAT.pointer_types:
             count = get_pointer_chain_count(type_offset)
-            for i in range(count):
-                member.type_str += " pointer"
+            member.type_str += (" " + " ".join(["pointer"]*count))
 
         if type_offset in FLAT.reference_types:
             member.type_str += " reference"
