@@ -192,6 +192,12 @@ typedef struct StructQ
     char* a;
 } StructQ;
 
+typedef struct StructR
+{
+    StructR(char* in): a(*in){}
+    char& a;
+} StructR;
+
 UnionA union_a;
 
 StructA struct_a;
@@ -215,6 +221,9 @@ StructNMultiDerivedMixAccessibility structd_n_multi_derived_mix_accessibility;
 StructO struct_o;
 StructP struct_p;
 StructQ struct_q;
+
+char t;
+StructR struct_r(&t);
 
 StructWithEnum structWithEnum;
 

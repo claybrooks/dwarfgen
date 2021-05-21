@@ -64,6 +64,7 @@ class FlatStructure:
         self.subrange_types = {}
         self.type_defs = {}
         self.pointer_types = {}
+        self.reference_types = {}
         self.ignored_types = {}
         self.const_types = {}
 
@@ -216,7 +217,16 @@ def default_enumerator_data_policy(die):
 def default_valid_pointertype_policy(die):
     return die.has_byte_size()
 
+def default_valid_referencetype_policy(die):
+    return die.has_byte_size()
+
 def default_pointertype_data_policy(die):
+    return {
+        'size': die.byte_size(),
+        'type': die.type() if die.has_type() else str("void")
+    }
+
+def default_referencetype_data_policy(die):
     return {
         'size': die.byte_size(),
         'type': die.type() if die.has_type() else str("void")
@@ -384,6 +394,7 @@ def wrap_die(die):
         "template_type_param",
         "inheritance",
         "pointer_type",
+        'reference_type',
         "enumeration_type",
         "enumerator",
         "const_type"
@@ -427,6 +438,7 @@ def apply_default_policies():
     global VALID_STATIC_STRUCTURE_MEMBER_POLICY
     global VALID_INSTANCE_STRUCTURE_MEMBER_POLICY
     global VALID_POINTERTYPE_POLICY
+    global VALID_REFERENCETYPE_POLICY
     global VALID_ENUMERATION_POLICY
     global VALID_ENUMERATOR_POLICY
     global TYPEDEF_DATA_POLICY
@@ -439,6 +451,7 @@ def apply_default_policies():
     global STATIC_STRUCTURE_MEMBER_DATA_POLICY
     global INSTANCE_STRUCTURE_MEMBER_DATA_POLICY
     global POINTERTYPE_DATA_POLICY
+    global REFERENCETYPE_DATA_POLICY
     global SUBRANGE_LOWERBOUND_POLICY
     global SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY
     global ENUMERATION_DATA_POLICY
@@ -466,6 +479,7 @@ def apply_default_policies():
     VALID_STATIC_STRUCTURE_MEMBER_POLICY = default_valid_static_structure_member_policy
     VALID_INSTANCE_STRUCTURE_MEMBER_POLICY = default_valid_instance_structure_member_policy
     VALID_POINTERTYPE_POLICY = default_valid_pointertype_policy
+    VALID_REFERENCETYPE_POLICY = default_valid_referencetype_policy
     VALID_ENUMERATION_POLICY = default_valid_enumeration_policy
     VALID_ENUMERATOR_POLICY = default_valid_enumerator_policy
     VALID_CONSTTYPE_POLICY = default_valid_consttype_policy
@@ -485,6 +499,7 @@ def apply_default_policies():
     STATIC_STRUCTURE_MEMBER_DATA_POLICY = default_static_structure_member_data_policy
     INSTANCE_STRUCTURE_MEMBER_DATA_POLICY = default_instance_structure_member_data_policy
     POINTERTYPE_DATA_POLICY = default_pointertype_data_policy
+    REFERENCETYPE_DATA_POLICY = default_referencetype_data_policy
     ENUMERATION_DATA_POLICY = default_enumeration_data_policy
     ENUMERATOR_DATA_POLICY = default_enumerator_data_policy
 
@@ -686,6 +701,12 @@ def build_pointer_type(die):
 
     FLAT.pointer_types[die.offset] = POINTERTYPE_DATA_POLICY(die)
 
+def build_reference_type(die):
+    if not VALID_REFERENCETYPE_POLICY(die):
+        return
+
+    FLAT.reference_types[die.offset] = REFERENCETYPE_DATA_POLICY(die)
+
 def build_enumeration_child(enumeration, values, die):
     wrap_die(die)
 
@@ -737,6 +758,8 @@ def die_info_rec(die, namespace:Namespace):
             build_type_def(child)
         elif child.is_pointer_type():
             build_pointer_type(child)
+        elif child.is_reference_type():
+            build_reference_type(child)
         elif child.is_array_type():
             build_array_type(child)
         elif child.is_subrange_type():
@@ -777,6 +800,8 @@ def resolve_type(type_offset, flat):
         return FLAT.type_defs[type_offset]
     elif type_offset in FLAT.pointer_types:
         return FLAT.pointer_types[type_offset]
+    elif type_offset in FLAT.reference_types:
+        return FLAT.reference_types[type_offset]
     elif type_offset in FLAT.enumerations:
         return FLAT.enumerations[type_offset]
     elif type_offset in FLAT.const_types:
@@ -827,45 +852,8 @@ def resolve_enumeration(enumeration):
     resolved_type = resolve_type_offset(type_offset, FLAT)
     enumeration.type_str = resolve_type_offset_name(resolved_type, FLAT)
 
-def resolve_union(union):
-
-    for member in union.members.values():
-        type_offset = member.type_offset
-        resolved_type = resolve_type_offset(type_offset, FLAT)
-
-        member.type_str = resolve_type_offset_name(resolved_type, FLAT)
-        if member.bit_size is None:
-            member.byte_size = resolve_type_offset_size(resolved_type, FLAT)
-
-        if type_offset in FLAT.array_types:
-            FLAT_array_type = FLAT.array_types[type_offset]
-            array_subranges = FLAT_array_type['subranges']
-
-            size = 0
-            for subrange in array_subranges:
-                subrange_type = FLAT.subrange_types[subrange]
-                upper_bound = subrange_type['upper_bound']
-                lower_bound = subrange_type['lower_bound']
-
-                size += (upper_bound - lower_bound + 1) * member.byte_size
-                member.add_to_bounds_list(lower_bound, upper_bound)
-
-            member.type_str = member.type_str
-            member.byte_size = size
-            if member.bit_size is not None:
-                member.byte_size = None
-
-        if type_offset in FLAT.subrange_types:
-            member.max_val = FLAT.subrange_types[type_offset]['upper_bound']
-            member.min_val = FLAT.subrange_types[type_offset]['lower_bound']
-
-def resolve_structure(structure):
-
-    for base_structure in structure.base_structures.values():
-        resolved_type = resolve_type_offset(base_structure.type_offset, FLAT)
-        base_structure.type = resolve_type_offset_name(resolved_type, FLAT)
-
-    for member in structure.members.values():
+def resolve(base_type):
+    for member in base_type.members.values():
         type_offset = member.type_offset
         resolved_type = resolve_type_offset(type_offset, FLAT)
 
@@ -899,9 +887,23 @@ def resolve_structure(structure):
         if type_offset in FLAT.pointer_types:
             member.type_str += " pointer"
 
+        if type_offset in FLAT.reference_types:
+            member.type_str += " reference"
+
         if type_offset in FLAT.subrange_types:
             member.max_val = FLAT.subrange_types[type_offset]['upper_bound']
             member.min_val = FLAT.subrange_types[type_offset]['lower_bound']
+
+def resolve_union(union):
+    resolve(union)
+
+def resolve_structure(structure):
+
+    for base_structure in structure.base_structures.values():
+        resolved_type = resolve_type_offset(base_structure.type_offset, FLAT)
+        base_structure.type = resolve_type_offset_name(resolved_type, FLAT)
+
+    resolve(structure)
 
 def ada_disperse_structures(namespace):
     move_structures = []

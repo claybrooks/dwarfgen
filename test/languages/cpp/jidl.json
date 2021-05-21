@@ -531,6 +531,17 @@
                     "accessibility": "public"
                 }
             }
+        },
+        "StructR": {
+            "byteSize": 8,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 8,
+                    "type": "char reference",
+                    "accessibility": "public"
+                }
+            }
         }
     },
     "enumerations": {
