@@ -173,12 +173,12 @@ pip install dwarfgen
 | DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | DWARF v5 | :x:                | :x:                | :x:                | :x:                | :x:                |
 
-| C++      | Classes            | Inheritance        | Namespaces         | STL       | Templates      |
-| -------- | :----------------: | :----------------: | :----------------: | :-------: | :------------: |
-| DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning: | :warning:      |
-| DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning: | :warning:      |
-| DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning: | :warning:      |
-| DWARF v5 | :x:                | :x:                | :x:                | :x:       | :x:            |
+| C++      | Classes            | Inheritance        | Namespaces         | References         | STL       | Templates      |
+| -------- | :----------------: | :----------------: | :----------------: | :----------------: | :-------: | :------------: |
+| DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning: | :warning:      |
+| DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning: | :warning:      |
+| DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning: | :warning:      |
+| DWARF v5 | :x:                | :x:                | :x:                | :x:                | :x:       | :x:            |
 
 ## Examples
 
