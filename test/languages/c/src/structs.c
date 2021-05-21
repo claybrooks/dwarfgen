@@ -46,6 +46,11 @@ typedef struct StructG
     char a[5][4][3][2];
 } StructG;
 
+typedef struct StructH
+{
+    char* a;
+} StructH;
+
 EnumA enum_a;
 
 UnionA union_a;
@@ -57,3 +62,4 @@ StructD struct_d;
 StructE struct_e;
 StructF struct_f;
 StructG struct_g;
+StructH struct_h;

@@ -896,6 +896,9 @@ def resolve_structure(structure):
             if member.bit_size is not None:
                 member.byte_size = None
 
+        if type_offset in FLAT.pointer_types:
+            member.type_str += " pointer"
+
         if type_offset in FLAT.subrange_types:
             member.max_val = FLAT.subrange_types[type_offset]['upper_bound']
             member.min_val = FLAT.subrange_types[type_offset]['lower_bound']

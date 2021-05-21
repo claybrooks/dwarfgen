@@ -187,6 +187,11 @@ typedef struct StructP
     char a[5][4][3][2];
 } StructP;
 
+typedef struct StructQ
+{
+    char* a;
+} StructQ;
+
 UnionA union_a;
 
 StructA struct_a;
@@ -207,8 +212,9 @@ StructNDerivedPrivate struct_n_derived_private;
 StructNDerivedProtected struct_n_derived_protected;
 StructNMultiDerived struct_n_multi_derived;
 StructNMultiDerivedMixAccessibility structd_n_multi_derived_mix_accessibility;
-StructO structo;
-StructP structp;
+StructO struct_o;
+StructP struct_p;
+StructQ struct_q;
 
 StructWithEnum structWithEnum;
 

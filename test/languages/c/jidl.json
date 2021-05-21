@@ -145,6 +145,17 @@
                     "accessibility": "public"
                 }
             }
+        },
+        "StructH": {
+            "byteSize": 8,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 8,
+                    "type": "char pointer",
+                    "accessibility": "public"
+                }
+            }
         }
     },
     "enumerations": {

@@ -159,26 +159,26 @@ pip install dwarfgen
 | DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:  |
 | DWARF v5 | :x:                | :x:                | :x:                 |
 
-| Ada      | Constrained Types        | Records            | Repspec            | Tagged Types       |
-| -------- | :----------------------: | :----------------: | :----------------: | :----------------: |
-| DWARF v2 | :heavy_check_mark:       | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| DWARF v3 | :heavy_check_mark:       | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| DWARF v4 | :heavy_check_mark:       | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| DWARF v5 | :x:                      | :x:                | :x:                | :x:                |
+| Ada      | Constrained Types   | Records            | Repspec            | Tagged Types       |
+| -------- | :-----------------: | :----------------: | :----------------: | :----------------: |
+| DWARF v2 | :heavy_check_mark:  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| DWARF v3 | :heavy_check_mark:  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| DWARF v4 | :heavy_check_mark:  | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| DWARF v5 | :x:                 | :x:                | :x:                | :x:                |
 
-| C        | Enumerations       | Structures         | Unions             | Bitfields          |
-| -------- | :----------------: | :----------------: | :----:             | :----------------: |
-| DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
-| DWARF v5 | :x:                | :x:                | :x:                | :x:                |
+| C        | Enumerations       | Structures         | Unions             | Bitfields          | Pointers           |
+| -------- | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
+| DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| DWARF v5 | :x:                | :x:                | :x:                | :x:                | :x:                |
 
-| C++      | Enumerations       | Structures         | Classes            | Unions             | Bitfields          | Inheritance        | STL       | Templates      |
-| -------- | :----------------: | :----------------: | :----------------: | :----:             | :----------------: | :----------------: | :-------: | :------------: |
-| DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning: | :warning:      |
-| DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning: | :warning:      |
-| DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning: | :warning:      |
-| DWARF v5 | :x:                | :x:                | :x:                | :x:                | :x:                | :x:                | :x:       | :x:            |
+| C++      | Classes            | Inheritance        | Namespaces         | STL       | Templates      |
+| -------- | :----------------: | :----------------: | :----------------: | :-------: | :------------: |
+| DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning: | :warning:      |
+| DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning: | :warning:      |
+| DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning: | :warning:      |
+| DWARF v5 | :x:                | :x:                | :x:                | :x:       | :x:            |
 
 ## Examples
 
