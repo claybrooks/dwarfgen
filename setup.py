@@ -10,7 +10,7 @@ install_requires = [
 
 setuptools.setup(
     name='dwarfgen',
-    version='0.2',
+    version='0.3',
     packages=[
         'dwarfgen',
         'dwarfgen.src',
