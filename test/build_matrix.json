@@ -21,6 +21,11 @@
             "compilerOptions": ["gnat12"],
             "linkerOptions": []
         },
+        "c": {
+            "compilers": ["gcc"],
+            "compilerOptions": [],
+            "linkerOptions": []
+        },
         "cpp": {
             "compilers": ["gcc"],
             "compilerOptions": ["std=c++11"],

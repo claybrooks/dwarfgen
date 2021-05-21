@@ -128,9 +128,9 @@ pip install dwarfgen
 
 |          | Ada                |  C                 | C++                | Cobol              | Fortran            |
 | -------- | :----------------: | :----------------: | :----------------: | :----------------: | :----------------: |
-| DWARF v2 | :heavy_check_mark: | :warning:          | :heavy_check_mark: | :warning:          | :warning:          |
-| DWARF v3 | :heavy_check_mark: | :warning:          | :heavy_check_mark: | :warning:          | :warning:          |
-| DWARF v4 | :heavy_check_mark: | :warning:          | :heavy_check_mark: | :warning:          | :warning:          |
+| DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning:          | :warning:          |
+| DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning:          | :warning:          |
+| DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :warning:          | :warning:          |
 | DWARF v5 | :x:                | :x:                | :x:                | :x:                | :x:                |
 
 ### Compiler Support

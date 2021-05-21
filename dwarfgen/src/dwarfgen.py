@@ -8,9 +8,49 @@ from .member import Member
 
 
 DEFAULT_LOWER_BOUND = {
-    'C++': 0,
-    'ADA': 1,
-    'FORTRAN': 1,
+    0x01: 0,
+    0x02: 0,
+    0x03: 1,
+    0x04: 0,
+    0x05: 1,
+    0x06: 1,
+    0x07: 1,
+    0x08: 1,
+    0x09: 1,
+    0x0a: 1,
+    0x0b: 0,
+    0x0c: 0,
+    0x0d: 1,
+    0x0e: 1,
+    0x0f: 1,
+    0x10: 0,
+    0x11: 0,
+    0x12: 0,
+    0x13: 0,
+    0x14: 0,
+}
+
+LANG_CODES = {
+    0x01: "C",
+    0x02: "C",
+    0x03: "ADA",
+    0x04: "C++",
+    0x05: "COBOL",
+    0x06: "COBOL",
+    0x07: "FORTRAN",
+    0x08: "FORTRAN",
+    0x09: "PASCAL",
+    0x0a: "MODULA",
+    0x0b: "JAVA",
+    0x0c: "C",
+    0x0d: "ADA",
+    0x0e: "FORTRAN",
+    0x0f: "PLI",
+    0x10: "OBJ_C",
+    0x11: "OBJ_C++",
+    0x12: "UPC",
+    0x13: "D",
+    0x14: "PYTHON",
 }
 
 class FlatStructure:
@@ -308,6 +348,7 @@ def wrap_die(die):
         "accessibility",
         "external",
         "const_value",
+        "language",
     ]
 
     for attr in attributes:
@@ -358,7 +399,7 @@ def wrap_die(die):
     setattr(
         die,
         "lower_bound",
-        lambda x=die: x.attributes['DW_AT_lower_bound'].value if x.has_lower_bound() else DEFAULT_LOWER_BOUND[DETECTED_LANGUAGE]
+        lambda x=die: x.attributes['DW_AT_lower_bound'].value if x.has_lower_bound() else DETECTED_DEFAULT_LOWER_BOUND
     )
 
     # add a special one for namespace
@@ -484,6 +525,7 @@ def apply_policies(version, language):
 def process(files):
     global FLAT
     global DETECTED_LANGUAGE
+    global DETECTED_DEFAULT_LOWER_BOUND
     global DETECTED_VERSION
 
     namespace = Namespace('')
@@ -507,19 +549,17 @@ def process(files):
             top_DIE = CU.get_top_DIE()
             wrap_die(top_DIE)
 
-            producer = top_DIE.producer()
-            if 'C++' in producer:
-                DETECTED_LANGUAGE = 'C++'
-            elif 'Ada' in producer:
-                DETECTED_LANGUAGE = 'ADA'
-            elif 'Fortran' in producer:
-                DETECTED_LANGUAGE = 'FORTRAN'
-            else:
-                logging.error('Unkown Language from producer {}'.format(producer))
+            language = top_DIE.language()
+
+            if language not in LANG_CODES:
+                logging.error('Unkown Language from producer {}'.format(language))
                 continue
+            else:
+                DETECTED_LANGUAGE = LANG_CODES[language]
+                DETECTED_DEFAULT_LOWER_BOUND = DEFAULT_LOWER_BOUND[language]
+                logging.info("Detected Language " + DETECTED_LANGUAGE)
 
             apply_policies(CU.header.version, DETECTED_LANGUAGE)
-
             die_info_rec(top_DIE, namespace)
 
 

@@ -1,0 +1,185 @@
+{
+    "namespaces": {},
+    "structures": {
+        "StructA": {
+            "byteSize": 8,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 1,
+                    "type": "char",
+                    "accessibility": "public"
+                },
+                "b": {
+                    "byteOffset": 4,
+                    "byteSize": 4,
+                    "type": "int",
+                    "accessibility": "public"
+                }
+            }
+        },
+        "StructB": {
+            "byteSize": 100,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 100,
+                    "type": "char",
+                    "bounds": [
+                        {
+                            "index": 0,
+                            "lowerBound": 0,
+                            "upperBound": 99
+                        }
+                    ],
+                    "accessibility": "public"
+                }
+            }
+        },
+        "StructC": {
+            "byteSize": 108,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 8,
+                    "type": "StructA",
+                    "accessibility": "public"
+                },
+                "b": {
+                    "byteOffset": 8,
+                    "byteSize": 100,
+                    "type": "StructB",
+                    "accessibility": "public"
+                }
+            }
+        },
+        "StructD": {
+            "byteSize": 80,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 80,
+                    "bounds": [
+                        {
+                            "index": 0,
+                            "lowerBound": 0,
+                            "upperBound": 9
+                        }
+                    ],
+                    "type": "StructA",
+                    "accessibility": "public"
+                }
+            }
+        },
+        "StructE": {
+            "byteSize": 1,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "bitOffset": 4,
+                    "bitSize": 4,
+                    "type": "char",
+                    "accessibility": "public"
+                },
+                "b": {
+                    "bitSize": 4,
+                    "byteOffset": 0,
+                    "bitOffset": 0,
+                    "type": "char",
+                    "accessibility": "public"
+                }
+            }
+        },
+        "StructF": {
+            "byteSize": 50,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 50,
+                    "type": "char",
+                    "bounds": [
+                        {
+                            "index": 0,
+                            "lowerBound": 0,
+                            "upperBound": 4
+                        },
+                        {
+                            "index": 1,
+                            "lowerBound": 0,
+                            "upperBound": 9
+                        }
+                    ],
+                    "accessibility": "public"
+                }
+            }
+        },
+        "StructG": {
+            "byteSize": 120,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 120,
+                    "type": "char",
+                    "bounds": [
+                        {
+                            "index": 0,
+                            "lowerBound": 0,
+                            "upperBound": 4
+                        },
+                        {
+                            "index": 1,
+                            "lowerBound": 0,
+                            "upperBound": 3
+                        },
+                        {
+                            "index": 2,
+                            "lowerBound": 0,
+                            "upperBound": 2
+                        },
+                        {
+                            "index": 3,
+                            "lowerBound": 0,
+                            "upperBound": 1
+                        }
+                    ],
+                    "accessibility": "public"
+                }
+            }
+        }
+    },
+    "enumerations": {
+        "EnumA": {
+            "byteSize": 4,
+            "type": "unsigned int",
+            "values": {
+                "EnumA__val_1": 1,
+                "EnumA__val_2": 0,
+                "EnumA__val_3": 5
+            }
+        }
+    },
+    "unions": {
+        "UnionA": {
+            "byteSize": 4,
+            "members": {
+                "bytes": {
+                    "byteSize": 4,
+                    "type": "char",
+                    "bounds": [
+                        {
+                            "index": 0,
+                            "lowerBound": 0,
+                            "upperBound": 3
+                        }
+                    ],
+                    "accessibility": "public"
+                },
+                "a": {
+                    "byteSize": 4,
+                    "type": "float",
+                    "accessibility": "public"
+                }
+            }
+        }
+    }
+}

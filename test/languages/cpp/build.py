@@ -4,6 +4,7 @@ import sys
 import os
 import platform
 
+SRC_DIR = os.path.dirname(os.path.realpath(__file__))
 
 PLAT_STR = "{}-{}".format(platform.system(), platform.machine())
 
@@ -14,8 +15,8 @@ def run(compiler, compiler_options, linker_options):
     CMAKE_GENERATE=[
         "cmake",
         "-S",
-        ".",
-        "-Bcmake-build/{}".format(PLAT_STR),
+        SRC_DIR,
+        "-Bcmake-build/cpp/{}".format(PLAT_STR),
         "-DCMAKE_BUILD_TYPE=Debug",
         "-DCMAKE_INSTALL_PREFIX=bin",
         "-DCMAKE_CXX_FLAGS={}".format(' '.join(compiler_options))
@@ -24,7 +25,7 @@ def run(compiler, compiler_options, linker_options):
     CMAKE_BUILD=[
         "cmake",
         "--build",
-        "cmake-build/{}".format(PLAT_STR),
+        "cmake-build/cpp/{}".format(PLAT_STR),
         "--target",
         "install",
     ]
@@ -41,6 +42,3 @@ def run(compiler, compiler_options, linker_options):
     except subprocess.CalledProcessError as e:
         logging.error("Error {}".format(e))
         return False
-
-if __name__ == '__main__':
-    run()

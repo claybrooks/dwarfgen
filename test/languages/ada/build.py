@@ -1,6 +1,8 @@
 import subprocess
 import os
 
+SRC_DIR = os.path.dirname(os.path.realpath(__file__))
+
 def build_objects(sources, compiler, compiler_options, linker_options):
     for src in sources:
         try:
@@ -22,7 +24,9 @@ def make_shared(objects, compiler):
 
     success = True
 
-    if compiler == 'gfortran':
+    # TODO this is a hack for travis-ci, figure out why gcc won't work
+    # alone
+    if compiler == 'gnatmake':
         compiler = 'gcc'
 
     try:
@@ -30,7 +34,7 @@ def make_shared(objects, compiler):
             compiler,
             "-shared",
             "-o",
-            "bin/lib/libtest_fortran.so"
+            "bin/lib/libtest_ada.so"
         ] + objects)
     except subprocess.CalledProcessError:
         success = False
@@ -42,6 +46,12 @@ def make_shared(objects, compiler):
                 "-f",
                 obj
             ])
+
+            subprocess.check_call([
+                "rm",
+                "-f",
+                obj.replace(".o", ".ali")
+            ])
         except subprocess.CalledProcessError:
             success = False
 
@@ -49,18 +59,14 @@ def make_shared(objects, compiler):
 
 def run(compiler, compiler_options, linker_options):
     sources = [
-        'src/fortran/types.f90',
+        os.path.join(SRC_DIR, 'src/records.ads'),
     ]
 
     objects = []
     for src in sources:
-        objects.append(src.split('/')[-1].replace(".f90", ".o"))
+        objects.append(src.split('/')[-1].replace(".ads", ".o"))
 
     success = build_objects(sources, compiler, compiler_options, linker_options)
     success = success and make_shared(objects, compiler)
 
     return success
-
-
-if __name__ == '__main__':
-    run()

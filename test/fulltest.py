@@ -4,9 +4,10 @@ import sys
 TEST_DIR = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.realpath(os.path.join(TEST_DIR, '..')))
 
-import build_cpp
-import build_ada
-import build_fortran
+from languages.ada      import build as build_ada
+from languages.cpp      import build as build_cpp
+from languages.c        import build as build_c
+from languages.fortran  import build as build_fortran
 
 import subprocess
 import test
@@ -15,9 +16,10 @@ import json
 import copy
 
 builder_map = {
-    'ada':      (build_ada,     './bin/lib/libtest_ada.so',     './src/ada/jidl.json'),
-    'cpp':      (build_cpp,     './bin/lib/libtest_cpp.so',     './src/cpp/jidl.json'),
-    'fortran':  (build_fortran, './bin/lib/libtest_fortran.so', './src/fortran/jidl.json')
+    'ada':      (build_ada,     './bin/lib/libtest_ada.so',     './languages/ada/jidl.json'),
+    'c':        (build_c,       './bin/lib/libtest_c.so',       './languages/c/jidl.json'),
+    'cpp':      (build_cpp,     './bin/lib/libtest_cpp.so',     './languages/cpp/jidl.json'),
+    'fortran':  (build_fortran, './bin/lib/libtest_fortran.so', './languages/fortran/jidl.json')
 }
 
 def test_lang(lang, config):
