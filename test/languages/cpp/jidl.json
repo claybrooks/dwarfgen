@@ -553,6 +553,17 @@
                     "accessibility": "public"
                 }
             }
+        },
+        "StructT": {
+            "byteSize": 8,
+            "members": {
+                "a": {
+                    "byteOffset": 0,
+                    "byteSize": 8,
+                    "type": "StructS pointer",
+                    "accessibility": "public"
+                }
+            }
         }
     },
     "enumerations": {

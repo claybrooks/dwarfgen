@@ -203,6 +203,11 @@ typedef struct StructS
     char** a;
 } StructS;
 
+typedef struct StructT
+{
+    StructS* a;
+} StructT;
+
 UnionA union_a;
 
 StructA struct_a;
@@ -227,6 +232,7 @@ StructO struct_o;
 StructP struct_p;
 StructQ struct_q;
 StructS struct_s;
+StructT struct_t;
 
 char t;
 StructR struct_r(&t);
