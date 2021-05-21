@@ -166,7 +166,7 @@ pip install dwarfgen
 | DWARF v4 | :heavy_check_mark:       | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | DWARF v5 | :x:                      | :x:                | :x:                | :x:                |
 
-| C++      | Enumerations       | Structures         | Classes            | Unions             | Bitfields          | Inheritance        | Multi-Inheritance        | STL Types | Template Types |
+| C++      | Enumerations       | Structures         | Classes            | Unions             | Bitfields          | Inheritance        | Multi-Inheritance        | STL       | Templates |
 | -------- | :----------------: | :----------------: | :----------------: | :----:             | :----------------: | :----------------: | :----------------------: | :-------: | :------------: |
 | DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :warning: | :warning:      |
 | DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :warning: | :warning:      |
