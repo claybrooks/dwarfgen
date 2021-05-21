@@ -1,7 +1,9 @@
 # Dwarfgen
 
 ## Description
+
 Use dwarfgen to
+
 - Generate datastructures that promote easy domain specific analysis of code
 - Generate code in other languages
 - Generate IDL's (Interactive Data Language)
@@ -109,15 +111,17 @@ padding to the structure.  This is easily handled by dwarfgen but can be difficu
 >In general, analyzing the output of the compiler hides almost all complicating factors versus analyzing the source code
 directly.  The simple reason is that you would have to re-implement all compiler specific rules in your analysis
 (including platform specific differences)
+
 ## Install
 
 ```
 pip install dwarfgen
 ```
 
-# Support Matrices
+## Support Matrices
 
-## DWARF Version Support
+### DWARF Version Support
+
 - :heavy_check_mark: - Language specific features implemented
 - :warning: - Core DWARF features implemented, language specific features are not implemented
 - :x: - Not implemented
@@ -129,7 +133,8 @@ pip install dwarfgen
 | DWARF v4 | :heavy_check_mark: | :warning:          | :heavy_check_mark: | :warning:          | :warning:          |
 | DWARF v5 | :x:                | :x:                | :x:                | :x:                | :x:                |
 
-## Compiler Support
+### Compiler Support
+
 - :heavy_check_mark: - Tested
 - :warning: - Untested
 - :x: - Not Implemented
@@ -141,16 +146,17 @@ pip install dwarfgen
 | DWARF v4 | :heavy_check_mark: | :warning:          |
 | DWARF v5 | :x:                | :x:                |
 
-## Language-Feature Support
+### Language-Feature Support
+
 - :heavy_check_mark: - Implemented
 - :warning: - Results may vary
 - :x: - Not implemented
 
 | Common   | Accessibility      | Arrays             | Multi-dimensional Arrays | Custom Types        |
 | -------- | :----------------: | :----------------: | :----------------------: | :-----------------: |
-| DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :x:                      | :heavy_check_mark:  |
-| DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :x:                      | :heavy_check_mark:  |
-| DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :x:                      | :heavy_check_mark:  |
+| DWARF v2 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :heavy_check_mark:  |
+| DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :heavy_check_mark:  |
+| DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :heavy_check_mark:  |
 | DWARF v5 | :x:                | :x:                | :x:                      | :x:                 |
 
 | Ada      | Constrained Types        | Records            | Repspec            | Tagged Types       |
@@ -166,7 +172,6 @@ pip install dwarfgen
 | DWARF v3 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :warning: | :warning:      |
 | DWARF v4 | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :warning: | :warning:      |
 | DWARF v5 | :x:                | :x:                | :x:                | :x:                | :x:                | :x:                | :x:                      | :x:       | :x:            |
-
 
 ## Examples
 
