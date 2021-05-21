@@ -177,6 +177,16 @@ typedef struct StructWithEnum {
     EnumA a;
 } StructWithEnum;
 
+typedef struct StructO
+{
+    char a[5][10];
+} StructO;
+
+typedef struct StructP
+{
+    char a[5][4][3][2];
+} StructP;
+
 UnionA union_a;
 
 StructA struct_a;
@@ -197,6 +207,8 @@ StructNDerivedPrivate struct_n_derived_private;
 StructNDerivedProtected struct_n_derived_protected;
 StructNMultiDerived struct_n_multi_derived;
 StructNMultiDerivedMixAccessibility structd_n_multi_derived_mix_accessibility;
+StructO structo;
+StructP structp;
 
 StructWithEnum structWithEnum;
 

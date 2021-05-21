@@ -202,9 +202,12 @@ def default_instance_structure_member_data_policy(die, _member):
     return ret
 
 def default_array_data_policy(die):
+
+    types = [x.offset for x in die.iter_children() if wrap_die(x).is_subrange_type()]
+
     return {
         'type': die.type(),
-        'sibling': die.sibling()
+        'subranges': types
     }
 
 def default_basetype_data_policy(die):
@@ -363,6 +366,9 @@ def wrap_die(die):
 
     # add a single member function to check all structure like types
     setattr(die, 'is_structure_like', lambda x=die: x.is_structure_type() or x.is_class_type())
+
+    return die
+
 
 FLAT = None
 DETECTED_LANGUAGE = None
@@ -626,7 +632,7 @@ def build_subrange_type(die):
         return
 
     FLAT.subrange_types[die.offset] = SUBRANGE_DATA_POLICY(die)
-    SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY(die, FLAT)
+    #SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY(die, FLAT)
 
 def build_string_type(die):
     if not VALID_STRINGTYPE_POLICY(die):
@@ -792,13 +798,22 @@ def resolve_union(union):
             member.byte_size = resolve_type_offset_size(resolved_type, FLAT)
 
         if type_offset in FLAT.array_types:
-            member.upper_bound = FLAT.array_types[type_offset]['upper_bound']
-            member.lower_bound = FLAT.array_types[type_offset]['lower_bound']
+            FLAT_array_type = FLAT.array_types[type_offset]
+            array_subranges = FLAT_array_type['subranges']
 
-            member.type_str = 'array of ' + member.type_str
-            member.byte_size = (member.upper_bound - member.lower_bound + 1) * member.byte_size
+            size = 0
+            for subrange in array_subranges:
+                subrange_type = FLAT.subrange_types[subrange]
+                upper_bound = subrange_type['upper_bound']
+                lower_bound = subrange_type['lower_bound']
+
+                size += (upper_bound - lower_bound + 1) * member.byte_size
+                member.add_to_bounds_list(lower_bound, upper_bound)
+
+            member.type_str = member.type_str
+            member.byte_size = size
             if member.bit_size is not None:
-                member.bit_size = None
+                member.byte_size = None
 
         if type_offset in FLAT.subrange_types:
             member.max_val = FLAT.subrange_types[type_offset]['upper_bound']
@@ -819,13 +834,27 @@ def resolve_structure(structure):
             member.byte_size = resolve_type_offset_size(resolved_type, FLAT)
 
         if type_offset in FLAT.array_types:
-            member.upper_bound = FLAT.array_types[type_offset]['upper_bound']
-            member.lower_bound = FLAT.array_types[type_offset]['lower_bound']
+            FLAT_array_type = FLAT.array_types[type_offset]
+            array_subranges = FLAT_array_type['subranges']
 
-            member.type_str = 'array of ' + member.type_str
-            member.byte_size = (member.upper_bound - member.lower_bound + 1) * member.byte_size
+            size = 0
+            for subrange in array_subranges:
+                subrange_type = FLAT.subrange_types[subrange]
+                upper_bound = subrange_type['upper_bound']
+                lower_bound = subrange_type['lower_bound']
+
+                subrange_size = (upper_bound - lower_bound + 1) * member.byte_size
+                if size == 0:
+                    size = subrange_size
+                else:
+                    size *= subrange_size
+
+                member.add_to_bounds_list(lower_bound, upper_bound)
+
+            member.type_str = member.type_str
+            member.byte_size = size
             if member.bit_size is not None:
-                member.bit_size = None
+                member.byte_size = None
 
         if type_offset in FLAT.subrange_types:
             member.max_val = FLAT.subrange_types[type_offset]['upper_bound']

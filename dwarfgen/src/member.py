@@ -1,5 +1,18 @@
 import json
 
+class BoundsList:
+    def __init__(self, index, lower, upper):
+        self.index = index
+        self.lower = lower
+        self.upper = upper
+
+    def get_json(self):
+        return {
+            'index': self.index,
+            'lowerBound': self.lower,
+            'upperBound': self.upper
+        }
+
 class Member:
     def __init__(self, name, type_offset):
         self.name           = name
@@ -11,10 +24,17 @@ class Member:
         self.type_str       = None
         self.upper_bound    = None
         self.lower_bound    = None
+        self.bounds_list    = None
         self.accessibility  = None
         self.min_val        = None
         self.max_val        = None
         self.is_static      = False
+
+    def add_to_bounds_list(self, lower, upper):
+        if self.bounds_list is None:
+            self.bounds_list = []
+
+        self.bounds_list.append(BoundsList(len(self.bounds_list), lower, upper))
 
     def to_json(self, json):
 
@@ -44,6 +64,11 @@ class Member:
 
         if self.lower_bound is not None:
             json['lowerBound'] = self.lower_bound
+
+        if self.bounds_list is not None:
+            json['bounds'] = []
+            for bound in self.bounds_list:
+                json['bounds'].append(bound.get_json())
 
         if self.min_val is not None:
             json['minVal'] = self.min_val

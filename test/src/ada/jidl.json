@@ -26,9 +26,14 @@
                         "a": {
                             "byteOffset": 0,
                             "byteSize": 100,
-                            "type": "array of character",
-                            "lowerBound": 1,
-                            "upperBound": 100,
+                            "type": "character",
+                            "bounds": [
+                                {
+                                    "index": 0,
+                                    "lowerBound": 1,
+                                    "upperBound": 100
+                                }
+                            ],
                             "accessibility": "public"
                         }
                     }
@@ -39,9 +44,14 @@
                         "a": {
                             "byteOffset": 0,
                             "byteSize": 101,
-                            "type": "array of character",
-                            "lowerBound": 0,
-                            "upperBound": 100,
+                            "type": "character",
+                            "bounds": [
+                                {
+                                    "index": 0,
+                                    "lowerBound": 0,
+                                    "upperBound": 100
+                                }
+                            ],
                             "accessibility": "public"
                         }
                     }
@@ -52,9 +62,14 @@
                         "a": {
                             "byteOffset": 0,
                             "byteSize": 91,
-                            "type": "array of character",
-                            "lowerBound": 10,
-                            "upperBound": 100,
+                            "type": "character",
+                            "bounds": [
+                                {
+                                    "index": 0,
+                                    "lowerBound": 10,
+                                    "upperBound": 100
+                                }
+                            ],
                             "accessibility": "public"
                         }
                     }
