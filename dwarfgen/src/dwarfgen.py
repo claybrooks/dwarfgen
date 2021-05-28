@@ -3,9 +3,9 @@ import json
 import logging
 from elftools.elf.elffile import ELFFile
 
-from .namespace import  Namespace
-from .structure import Structure
-from .member import Member
+from .jidl.namespace import  Namespace
+from .jidl.structure import Structure
+from .jidl.member import Member
 
 from .wrapdie import wrap_die
 from . import policies
@@ -438,6 +438,13 @@ def resolve_structure(structure):
     resolve(structure)
 
 def ada_disperse_structures(namespace):
+    '''
+    Ada doesn't make use of the DW_TAG_namespace attribute, so type names
+    are of the form x.y.z.type, where x.y.y are "namespaces".  In order
+    to make the output of ada use namespaces, we have to insert this
+    step to "disperse" the flat naming structure to a nested naming
+    structure.
+    '''
     move_structures = []
     for structure in namespace.structures.values():
         tokens = structure.name.split('__')

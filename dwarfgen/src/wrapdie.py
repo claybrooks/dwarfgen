@@ -1,3 +1,4 @@
+from . import lookups
 
 def data_member_location(val):
     if isinstance(val, list):
@@ -68,13 +69,6 @@ def wrap_die(die):
 
     # add a special one for artificial
     setattr(die, "is_artificial",   lambda x=die: x.has_artificial() and x.artificial() == 1)
-
-    # add a special one for lower_bound, the default depends on the language
-    setattr(
-        die,
-        "lower_bound",
-        lambda x=die: x.attributes['DW_AT_lower_bound'].value if x.has_lower_bound() else DETECTED_DEFAULT_LOWER_BOUND
-    )
 
     # add a special one for namespace
     setattr(die, "has_namespace",   lambda x=die: hasattr(x, 'namespace'))

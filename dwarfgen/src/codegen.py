@@ -1,12 +1,13 @@
 import os
+import importlib
+import logging
 
-from .lang_generators import cpp
+from . import lang_generators
 
-KNOWN_GENERATORS = {
-    'cpp': cpp
-}
+KNOWN_GENERATORS = {}
 
 def register_generator(lang, module):
+    global KNOWN_GENERATORS
     KNOWN_GENERATORS[lang] = module
 
 
@@ -42,9 +43,23 @@ def __generate(generator, jidl, namespace=None):
 
 
 def generate(lang, jidl, dest):
-    generator = KNOWN_GENERATORS[lang]
 
-    ext = generator.get_ext()
+    generator = None
+    if lang in KNOWN_GENERATORS:
+        generator = KNOWN_GENERATORS[lang]
+    else:
+        # see if the lang is a submodule of lang_generators
+        lang = lang.lower()
+        try:
+            generator = importlib.import_module(lang_generators.__name__+'.'+lang)
+        except Exception:
+            pass
+
+    if generator is None:
+        logging.error("Can't find generator {}".format(lang))
+        return
+
+    generator = importlib.import_module(generator.__name__+".generator")
 
     type_strs = __generate(generator, jidl)
 
