@@ -46,6 +46,23 @@ package Records is
         b: Integer;
     end record;
 
+    type VariantSelect is (One, Two, Three);
+
+    -- The_Type is called the discriminant of the type
+    type VariantRecord(Selector: VariantSelect := One) is record
+
+        common: Integer;
+
+        case Selector is
+            when One =>
+                a: boolean;
+            when Two =>
+                b: Positive;
+            when Three =>
+                c: String(1..5);
+        end case;
+    end record;
+
     type NonTaggedDerivedRecord is new NonTaggedBaseRecord;
 
     a : RecordA;
@@ -60,4 +77,5 @@ package Records is
 
     i: NonTaggedDerivedRecord;
 
+    --variant: VariantRecord;
 end Records;

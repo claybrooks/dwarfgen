@@ -6,6 +6,8 @@ from .namespace import  Namespace
 from .structure import Structure
 from .member import Member
 
+from .wrapdie import wrap_die
+from .policies import defaultpolicylist, adapolicylist, fortranpolicylist
 
 DEFAULT_LOWER_BOUND = {
     0x01: 0,
@@ -68,474 +70,21 @@ class FlatStructure:
         self.ignored_types = {}
         self.const_types = {}
 
-def data_member_location(val):
-    if isinstance(val, list):
-        return val[1]
-    return val
-
-
-ACCESSIBILITY = {
-    1: "public",
-    2: "protected",
-    3: "private"
-}
-
-def v2_accessibility_policy(die):
-
-    if not die.has_accessibility():
-        return 'public'
-
-    return ACCESSIBILITY[die.accessibility()]
-
-def v2_inheritance_accessibility_policy(die):
-
-    if not die.has_accessibility():
-        return 'private'
-
-    return ACCESSIBILITY[die.accessibility()]
-
-def ada_v2_inheritance_accessibility_policy(die):
-
-    if not die.has_accessibility():
-        return 'public'
-
-    return ACCESSIBILITY[die.accessibility()]
-
-def default_accessibility_policy(die):
-
-    if not die.has_accessibility():
-        parent = die.get_parent()
-        if parent.is_structure_type():
-            return 'public'
-        elif parent.is_class_type():
-            return "private"
-        elif parent.is_union_type():
-            return "public"
-        else:
-            raise ValueError("Unknown Default Accessibility for {}".format(parent))
-
-    return ACCESSIBILITY[die.accessibility()]
-
-def default_structure_data_policy(die):
-    size = 0
-    if die.has_byte_size():
-        size = die.byte_size()
-
-    return {
-        'name': NAME_POLICY(die),
-        'size': size,
-        'members': {}
-    }
-
-def default_valid_structure_policy(die):
-    return (die.has_name() or die.has_MIPS_linkage_name() or die.has_linkage_name()) and not die.is_artificial()
-
-def default_valid_typedef_policy(die):
-    return die.has_name()
-
-def default_typedef_data_policy(die):
-    return {
-        'name': die.name(),
-        'type': die.type() if die.has_type() else ""
-    }
-
-def default_valid_consttype_policy(die):
-    return die.has_type()
-
-def default_consttype_data_policy(die):
-    return {
-        "type": die.type()
-    }
-
-def default_valid_union_member_policy(die):
-    return die.has_name() and die.has_type()
-
-def default_union_member_data_policy(die):
-    return {
-        "name": die.name(),
-        "type": die.type()
-    }
-
-def default_valid_union_policy(die):
-    return die.has_byte_size()
-
-def default_union_data_policy(die):
-    return {
-        "name": NO_NS_NAME_POLICY(die),
-        "size": die.byte_size(),
-        "members": {}
-    }
-
-def default_valid_array_policy(die):
-    return die.has_sibling()
-
-def default_valid_subrange_policy(die):
-    return die.has_type() and die.has_upper_bound()
-
-def default_valid_basetype_policy(die):
-    return die.has_byte_size() and die.has_encoding() and die.has_name()
-
-def default_valid_stringtype_policy(die):
-    return die.has_byte_size()
-
-def default_valid_enumeration_policy(die):
-    return die.has_name() and die.has_byte_size() and die.has_type() and die.has_encoding()
-
-def default_valid_static_structure_member_policy(die):
-    return VALID_STRUCTURE_MEMBER_POLICY(die) and die.has_external()
-
-def default_valid_instance_structure_member_policy(die):
-    return VALID_STRUCTURE_MEMBER_POLICY(die) and die.has_data_member_location()
-
-def default_valid_structure_member_policy(die):
-    return die.has_name() and die.has_type()
-
-def default_structure_member_data_policy(die):
-    return {
-        'name': die.name(),
-        'typeOffset': die.type()
-    }
-
-def default_enumeration_data_policy(die):
-    return {
-        'name': die.name(),
-        'encoding': die.encoding(),
-        'type': die.type(),
-        'size': die.byte_size(),
-        'values': {}
-    }
-
-def default_valid_enumerator_policy(die):
-    return die.has_name() and die.has_const_value()
-
-def default_enumerator_data_policy(die):
-    return {
-        'name': die.name(),
-        'value': die.const_value()
-    }
-
-def default_valid_pointertype_policy(die):
-    return die.has_byte_size()
-
-def default_valid_referencetype_policy(die):
-    return die.has_byte_size()
-
-def default_pointertype_data_policy(die):
-    return {
-        'size': die.byte_size(),
-        'type': die.type() if die.has_type() else str("void")
-    }
-
-def default_referencetype_data_policy(die):
-    return {
-        'size': die.byte_size(),
-        'type': die.type() if die.has_type() else str("void")
-    }
-
-def default_static_structure_member_data_policy(die, _member):
-    _member.is_static = True
-    return STRUCTURE_MEMBER_DATA_POLICY(die)
-
-def default_instance_structure_member_data_policy(die, _member):
-    ret = STRUCTURE_MEMBER_DATA_POLICY(die)
-
-    ret.update({"byteOffset": die.data_member_location()})
-    _member.byte_offset = die.data_member_location()
-
-    if die.has_bit_size():
-        ret.update({'DW_AT_bit_size': die.bit_size()})
-        _member.bit_size = die.bit_size()
-    if die.has_bit_offset():
-        ret.update({'DW_AT_bit_offset':  die.bit_offset()})
-        _member.bit_offset = die.bit_offset()
-
-    return ret
-
-def default_array_data_policy(die):
-
-    types = [x.offset for x in die.iter_children() if wrap_die(x).is_subrange_type()]
-
-    return {
-        'type': die.type(),
-        'subranges': types
-    }
-
-def default_basetype_data_policy(die):
-
-    name = die.name()
-    if '(kind' in name:
-        name = name.split('(')[0]
-
-    return {
-        'size': die.byte_size(),
-        'encoding': die.encoding(),
-        'name': name
-    }
-
-def default_valid_stringtype_data_policy(die):
-    return {
-        'size': die.byte_size(),
-        'name': 'string' if die.byte_size() > 1 else 'char'
-    }
-
-def default_subrange_data_policy(die):
-    return {
-        'type': die.type(),
-        'lower_bound': SUBRANGE_LOWERBOUND_POLICY(die),
-        'upper_bound': die.upper_bound(),
-    }
-
-def zero_indexed_subrange_lowerbound_policy(die):
-    return die.lower_bound() if die.has_lower_bound() else 0
-
-def one_indexed_subrange_lowerbound_policy(die):
-    return die.lower_bound() if die.has_lower_bound() else 1
-
-def default_no_ns_name_policy(die):
-    name = ''
-    if die.has_name():
-        name = die.name()
-    elif die.has_MIPS_linkage_name():
-        name = die.MIPS_linkage_name()
-    elif die.has_linkage_name():
-        name = die.linkage_name()
-    else:
-        name = "UNKNOWN"
-
-    return name
-
-def default_name_policy(die):
-
-    name = NO_NS_NAME_POLICY(die)
-
-    if die.has_namespace():
-        return die.namespace + '::' + name
-    else:
-        return name
-
-def default_subrange_data_for_array_parent_policy(die, flat):
-    parent = die.get_parent()
-    if parent and parent.offset in flat.array_types:
-        flat.array_types[parent.offset]['upper_bound'] = flat.subrange_types[die.offset]['upper_bound']
-        flat.array_types[parent.offset]['lower_bound'] = flat.subrange_types[die.offset]['lower_bound']
-
-def default_namespace_application_policy(namespace, die):
-    new_namespace = namespace.create_namespace(die.name())
-
-    # inject ".namespace" attribute on all children
-    for child in die.iter_children():
-        curr_ns = getattr(die, 'namespace', None)
-        if curr_ns is None:
-            child.namespace = die.name()
-        else:
-            child.namespace = curr_ns + '::' + die.name()
-
-    return new_namespace
-
-def default_is_inheritance_policy(die):
-    return die.is_inheritance() or \
-        (DETECTED_LANGUAGE=='ADA' and die.is_member() and die.name() == '_parent')
-
-def ada_valid_struct_policy(die):
-    return default_valid_structure_policy(die) and \
-        ('ada__' not in die.name())
-
-
-def wrap_die(die):
-
-    # 'DW_AT_*'
-    attributes = [
-        "byte_size",
-        "encoding",
-        "data_member_location",
-        "type",
-        "bit_size",
-        "bit_offset",
-        "sibling",
-        "upper_bound",
-        "lower_bound",
-        "artificial",
-        "accessibility",
-        "external",
-        "const_value",
-        "language",
-    ]
-
-    for attr in attributes:
-        setattr(die, 'has_'+attr,   lambda x=die, a=attr: 'DW_AT_'+a in x.attributes)
-        setattr(die, attr,          lambda x=die, a=attr: data_member_location(x.attributes['DW_AT_'+a].value))
-
-    # 'DW_AT_*' but also decode .value
-    decode_attributes = [
-        'producer',
-        'name',
-        "MIPS_linkage_name",
-        "linkage_name"
-    ]
-
-    for attr in decode_attributes:
-        setattr(die, 'has_'+attr,   lambda x=die, a=attr: 'DW_AT_'+a in x.attributes)
-        setattr(die, attr,          lambda x=die, a=attr: x.attributes['DW_AT_'+a].value.decode())
-
-    # 'DW_TAG_*'
-    tag_types = [
-        'structure_type',
-        'class_type',
-        "union_type",
-        'member',
-        'base_type',
-        'string_type',
-        'typedef',
-        'sibling',
-        'array_type',
-        'subrange_type',
-        'namespace',
-        'variable',
-        "template_type_param",
-        "inheritance",
-        "pointer_type",
-        'reference_type',
-        "enumeration_type",
-        "enumerator",
-        "const_type"
-    ]
-
-    for tag_type in tag_types:
-        setattr(die, 'is_'+tag_type, lambda x=die, tag=tag_type: x.tag == 'DW_TAG_'+tag)
-
-    # add a special one for artificial
-    setattr(die, "is_artificial",   lambda x=die: x.has_artificial() and x.artificial() == 1)
-
-    # add a special one for lower_bound, the default depends on the language
-    setattr(
-        die,
-        "lower_bound",
-        lambda x=die: x.attributes['DW_AT_lower_bound'].value if x.has_lower_bound() else DETECTED_DEFAULT_LOWER_BOUND
-    )
-
-    # add a special one for namespace
-    setattr(die, "has_namespace",   lambda x=die: hasattr(x, 'namespace'))
-
-    # add a single member function to check all structure like types
-    setattr(die, 'is_structure_like', lambda x=die: x.is_structure_type() or x.is_class_type())
-
-    return die
-
-
 FLAT = None
 DETECTED_LANGUAGE = None
 DETECTED_VERSION = None
-
-# policies
-def apply_default_policies():
-    global VALID_STRUCTURE_POLICY
-    global VALID_TYPEDEF_POLICY
-    global VALID_ARRAY_POLICY
-    global VALID_SUBRANGE_POLICY
-    global VALID_BASETYPE_POLICY
-    global VALID_STRINGTYPE_POLICY
-    global VALID_STRUCTURE_MEMBER_POLICY
-    global VALID_STATIC_STRUCTURE_MEMBER_POLICY
-    global VALID_INSTANCE_STRUCTURE_MEMBER_POLICY
-    global VALID_POINTERTYPE_POLICY
-    global VALID_REFERENCETYPE_POLICY
-    global VALID_ENUMERATION_POLICY
-    global VALID_ENUMERATOR_POLICY
-    global TYPEDEF_DATA_POLICY
-    global ARRAY_DATA_POLICY
-    global BASETYPE_DATA_POLICY
-    global STRINGTYPE_DATA_POLICY
-    global SUBRANGE_DATA_POLICY
-    global STRUCTURE_DATA_POLICY
-    global STRUCTURE_MEMBER_DATA_POLICY
-    global STATIC_STRUCTURE_MEMBER_DATA_POLICY
-    global INSTANCE_STRUCTURE_MEMBER_DATA_POLICY
-    global POINTERTYPE_DATA_POLICY
-    global REFERENCETYPE_DATA_POLICY
-    global SUBRANGE_LOWERBOUND_POLICY
-    global SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY
-    global ENUMERATION_DATA_POLICY
-    global ENUMERATOR_DATA_POLICY
-    global NAMESPACE_APPLICATION_POLICY
-    global ACCESSIBILITY_POLICY
-    global INHERITANCE_ACCESSIBILITY_POLICY
-    global IS_INHERITANCE_POLICY
-    global NAME_POLICY
-    global VALID_CONSTTYPE_POLICY
-    global CONSTTYPE_DATA_POLICY
-    global VALID_UNION_POLICY
-    global UNION_DATA_POLICY
-    global VALID_UNION_MEMBER_POLICY
-    global UNION_MEMBER_DATA_POLICY
-    global NO_NS_NAME_POLICY
-
-    VALID_STRUCTURE_POLICY = default_valid_structure_policy
-    VALID_TYPEDEF_POLICY = default_valid_typedef_policy
-    VALID_ARRAY_POLICY = default_valid_array_policy
-    VALID_SUBRANGE_POLICY = default_valid_subrange_policy
-    VALID_BASETYPE_POLICY = default_valid_basetype_policy
-    VALID_STRINGTYPE_POLICY = default_valid_stringtype_policy
-    VALID_STRUCTURE_MEMBER_POLICY = default_valid_structure_member_policy
-    VALID_STATIC_STRUCTURE_MEMBER_POLICY = default_valid_static_structure_member_policy
-    VALID_INSTANCE_STRUCTURE_MEMBER_POLICY = default_valid_instance_structure_member_policy
-    VALID_POINTERTYPE_POLICY = default_valid_pointertype_policy
-    VALID_REFERENCETYPE_POLICY = default_valid_referencetype_policy
-    VALID_ENUMERATION_POLICY = default_valid_enumeration_policy
-    VALID_ENUMERATOR_POLICY = default_valid_enumerator_policy
-    VALID_CONSTTYPE_POLICY = default_valid_consttype_policy
-    VALID_UNION_POLICY = default_valid_union_policy
-    VALID_UNION_MEMBER_POLICY = default_valid_union_member_policy
-
-    UNION_MEMBER_DATA_POLICY = default_union_member_data_policy
-    UNION_DATA_POLICY = default_union_data_policy
-    CONSTTYPE_DATA_POLICY = default_consttype_data_policy
-    TYPEDEF_DATA_POLICY = default_typedef_data_policy
-    ARRAY_DATA_POLICY = default_array_data_policy
-    BASETYPE_DATA_POLICY = default_basetype_data_policy
-    STRINGTYPE_DATA_POLICY = default_valid_stringtype_data_policy
-    SUBRANGE_DATA_POLICY = default_subrange_data_policy
-    STRUCTURE_DATA_POLICY = default_structure_data_policy
-    STRUCTURE_MEMBER_DATA_POLICY = default_structure_member_data_policy
-    STATIC_STRUCTURE_MEMBER_DATA_POLICY = default_static_structure_member_data_policy
-    INSTANCE_STRUCTURE_MEMBER_DATA_POLICY = default_instance_structure_member_data_policy
-    POINTERTYPE_DATA_POLICY = default_pointertype_data_policy
-    REFERENCETYPE_DATA_POLICY = default_referencetype_data_policy
-    ENUMERATION_DATA_POLICY = default_enumeration_data_policy
-    ENUMERATOR_DATA_POLICY = default_enumerator_data_policy
-
-    SUBRANGE_LOWERBOUND_POLICY = zero_indexed_subrange_lowerbound_policy
-    SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY = default_subrange_data_for_array_parent_policy
-
-    NAMESPACE_APPLICATION_POLICY = default_namespace_application_policy
-
-    ACCESSIBILITY_POLICY = default_accessibility_policy
-    INHERITANCE_ACCESSIBILITY_POLICY = default_accessibility_policy
-    IS_INHERITANCE_POLICY = default_is_inheritance_policy
-
-    NO_NS_NAME_POLICY = default_no_ns_name_policy
-    NAME_POLICY = default_name_policy
-
+POLICY = None
 
 def apply_policies(version, language):
-    apply_default_policies()
+    global POLICY
 
-    global ACCESSIBILITY_POLICY
-    global SUBRANGE_LOWERBOUND_POLICY
-    global INHERITANCE_ACCESSIBILITY_POLICY
-    global VALID_STRUCTURE_POLICY
-
-    if version == 2:
-        ACCESSIBILITY_POLICY = v2_accessibility_policy
-        INHERITANCE_ACCESSIBILITY_POLICY = v2_inheritance_accessibility_policy
-
+    policy_class = defaultpolicylist.DefaultPolicyList
     if language == 'ADA':
-        if version == 2:
-            INHERITANCE_ACCESSIBILITY_POLICY = ada_v2_inheritance_accessibility_policy
+        policy_class = adapolicylist.AdaPolicyList
+    elif language == 'FORTRAN':
+        policy_class = fortranpolicylist.FortranPolicyList
 
-        VALID_STRUCTURE_POLICY = ada_valid_struct_policy
-
-    if language == 'ADA' or language == 'FORTRAN':
-        SUBRANGE_LOWERBOUND_POLICY = one_indexed_subrange_lowerbound_policy
+    POLICY = policy_class(version)
 
 
 def process(files):
@@ -590,10 +139,10 @@ def process(files):
     return namespace
 
 def build_base_type(die):
-    if not VALID_BASETYPE_POLICY(die):
+    if not POLICY.ValidBaseTypePolicy(die):
         return
 
-    FLAT.base_types[die.offset] = BASETYPE_DATA_POLICY(die)
+    FLAT.base_types[die.offset] = POLICY.BaseTypeDataPolicy(die)
 
 def build_structure_child(structure, die, namespace):
     wrap_die(die)
@@ -601,21 +150,21 @@ def build_structure_child(structure, die, namespace):
     if die.is_template_type_param():
         #TODO implement some sort of template parameters
         pass
-    elif IS_INHERITANCE_POLICY(die):
-        structure.add_base_structure(die.type(), INHERITANCE_ACCESSIBILITY_POLICY(die), die.data_member_location())
+    elif POLICY.IsInheritancePolicy(die):
+        structure.add_base_structure(die.type(), POLICY.InheritanceAccessibilityPolicy(die), die.data_member_location())
     elif die.is_member():
-        if not VALID_STRUCTURE_MEMBER_POLICY(die):
+        if not POLICY.ValidStructureMemberPolicy(die):
             return
 
         _member = structure.create_member(
             die.name(), die.type()
         )
-        _member.accessibility = ACCESSIBILITY_POLICY(die)
+        _member.accessibility = POLICY.AccessibilityPolicy(die)
 
-        if VALID_STATIC_STRUCTURE_MEMBER_POLICY(die):
-            return STATIC_STRUCTURE_MEMBER_DATA_POLICY(die, _member)
-        elif VALID_INSTANCE_STRUCTURE_MEMBER_POLICY(die):
-            return INSTANCE_STRUCTURE_MEMBER_DATA_POLICY(die, _member)
+        if POLICY.ValidStaticStructureMemberPolicy(die):
+            return POLICY.StaticStructureMemberDataPolicy(die, _member)
+        elif POLICY.ValidInstanceStructureMemberPolicy(die):
+            return POLICY.InstanceStructureMemberDataPolicy(die, _member)
     elif die.is_subrange_type():
         build_subrange_type(die)
     elif die.is_structure_type():
@@ -627,12 +176,12 @@ def build_structure_child(structure, die, namespace):
 def build_structure_type(die, namespace):
 
     # invalid structure
-    if not VALID_STRUCTURE_POLICY(die):
+    if not POLICY.ValidStructurePolicy(die):
         return
 
-    structure = namespace.create_structure(NO_NS_NAME_POLICY(die), die.byte_size() if die.has_byte_size() else 0)
+    structure = namespace.create_structure(POLICY.NoNamespaceNamePolicy(die), die.byte_size() if die.has_byte_size() else 0)
 
-    FLAT.structures[die.offset] = STRUCTURE_DATA_POLICY(die)
+    FLAT.structures[die.offset] = POLICY.StructureDataPolicy(die)
 
     for child in die.iter_children():
         build_structure_child(structure, child, namespace)
@@ -644,83 +193,83 @@ def build_union_child(union, members, die):
         #TODO implement some sort of template parameters
         pass
     elif die.is_member():
-        if not VALID_UNION_MEMBER_POLICY(die):
+        if not POLICY.ValidUnionMemberPolicy(die):
             return
 
         _member = union.create_member(
             die.name(), die.type()
         )
-        _member.accessibility = ACCESSIBILITY_POLICY(die)
+        _member.accessibility = POLICY.AccessibilityPolicy(die)
 
-        return UNION_MEMBER_DATA_POLICY(die)
+        return POLICY.UnionMemberDataPolicy(die)
     elif die.is_subrange_type():
         build_subrange_type(die)
 
 def build_union_type(die, namespace):
 
     # invalid structure
-    if not VALID_UNION_POLICY(die):
+    if not POLICY.ValidUnionPolicy(die):
         return
 
-    union = namespace.create_union(NO_NS_NAME_POLICY(die), die.byte_size())
+    union = namespace.create_union(POLICY.NoNamespaceNamePolicy(die), die.byte_size())
 
-    FLAT.unions[die.offset] = UNION_DATA_POLICY(die)
+    FLAT.unions[die.offset] = POLICY.UnionDataPolicy(die)
     members = FLAT.unions[die.offset]['members']
 
     for child in die.iter_children():
         build_union_child(union, members, child)
 
 def build_type_def(die):
-    if not VALID_TYPEDEF_POLICY(die):
+    if not POLICY.ValidTypedefPolicy(die):
         return
 
-    FLAT.type_defs[die.offset] = TYPEDEF_DATA_POLICY(die)
+    FLAT.type_defs[die.offset] = POLICY.TypedefDataPolicy(die)
 
 def build_array_type(die):
-    if not VALID_ARRAY_POLICY(die):
+    if not POLICY.ValidArrayPolicy(die):
         return
 
-    FLAT.array_types[die.offset] = ARRAY_DATA_POLICY(die)
+    FLAT.array_types[die.offset] = POLICY.ArrayDataPolicy(die)
 
 def build_subrange_type(die):
-    if not VALID_SUBRANGE_POLICY(die):
+    if not POLICY.ValidSubrangePolicy(die):
         return
 
-    FLAT.subrange_types[die.offset] = SUBRANGE_DATA_POLICY(die)
+    FLAT.subrange_types[die.offset] = POLICY.SubrangeDataPolicy(die)
     #SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY(die, FLAT)
 
 def build_string_type(die):
-    if not VALID_STRINGTYPE_POLICY(die):
+    if not POLICY.ValidStringTypePolicy(die):
         return
 
-    FLAT.string_types[die.offset] = STRINGTYPE_DATA_POLICY(die)
+    FLAT.string_types[die.offset] = POLICY.StringTypeDataPolicy(die)
 
 def build_pointer_type(die):
-    if not VALID_POINTERTYPE_POLICY(die):
+    if not POLICY.ValidPointerTypePolicy(die):
         return
 
-    FLAT.pointer_types[die.offset] = POINTERTYPE_DATA_POLICY(die)
+    FLAT.pointer_types[die.offset] = POLICY.PointerTypeDataPolicy(die)
 
 def build_reference_type(die):
-    if not VALID_REFERENCETYPE_POLICY(die):
+    if not POLICY.ValidReferenceTypePolicy(die):
         return
 
-    FLAT.reference_types[die.offset] = REFERENCETYPE_DATA_POLICY(die)
+    FLAT.reference_types[die.offset] = POLICY.ReferenceTypeDataPolicy(die)
 
 def build_enumeration_child(enumeration, values, die):
     wrap_die(die)
 
-    if not VALID_ENUMERATOR_POLICY(die):
+    if not POLICY.ValidEnumeratorPolicy(die):
         return
 
     _value = enumeration.add_value(
         die.name(), die.const_value()
     )
 
-    return ENUMERATOR_DATA_POLICY(die)
+    return POLICY.EnumeratorDataPolicy(die)
 
 def build_enumeration_type(die, namespace):
-    if not VALID_ENUMERATION_POLICY(die):
+    if not POLICY.ValidEnumerationPolicy(die):
         return
 
     enumeration = namespace.create_enumeration(
@@ -730,17 +279,17 @@ def build_enumeration_type(die, namespace):
         die.encoding()
     )
 
-    FLAT.enumerations[die.offset] = ENUMERATION_DATA_POLICY(die)
+    FLAT.enumerations[die.offset] = POLICY.EnumerationDataPolicy(die)
     values = FLAT.enumerations[die.offset]['values']
 
     for child in die.iter_children():
         build_enumeration_child(enumeration, values, child)
 
 def build_const_type(die):
-    if not VALID_CONSTTYPE_POLICY(die):
+    if not POLICY.ValidConstTypePolicy(die):
         return
 
-    FLAT.const_types[die.offset] = CONSTTYPE_DATA_POLICY(die)
+    FLAT.const_types[die.offset] = POLICY.ConstTypeDataPolicy(die)
 
 def die_info_rec(die, namespace:Namespace):
     for child in die.iter_children():
@@ -769,7 +318,7 @@ def die_info_rec(die, namespace:Namespace):
         elif child.is_const_type():
             build_const_type(child)
         elif child.is_namespace():
-            new_namespace = NAMESPACE_APPLICATION_POLICY(namespace, child)
+            new_namespace = POLICY.NamespaceApplicationPolicy(child, namespace)
             die_info_rec(child, new_namespace)
 
         if not child.is_namespace():
