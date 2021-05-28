@@ -1,12 +1,12 @@
-from .policy import Policy
-from .accessibility import ACCESSIBILITY
-from ..wrapdie import wrap_die
+from ..ipolicy import IPolicy
+from ... import lookups
+from ...wrapdie import wrap_die
 
-class AritificialTypesPolicy(Policy):
+class AritificialTypesPolicy(IPolicy):
     def check(self, die, **kwargs):
         return True
 
-class AccessibilityPolicy(Policy):
+class AccessibilityPolicy(IPolicy):
     def check(self, die, **kwargs):
         if not die.has_accessibility():
             parent = die.get_parent()
@@ -19,25 +19,25 @@ class AccessibilityPolicy(Policy):
             else:
                 raise ValueError("Unknown Default Accessibility for {}".format(parent))
 
-        return ACCESSIBILITY[die.accessibility()]
+        return lookups.ACCESSIBILITY[die.accessibility()]
 
-class StructureDataPolicy(Policy):
+class StructureDataPolicy(IPolicy):
+
+    def __init__(self, name_policy):
+        self.name_policy = name_policy
 
     def check(self, die, **kwargs):
-
-        name_policy = kwargs.pop("name_policy")
-
         size = 0
         if die.has_byte_size():
             size = die.byte_size()
 
         return {
-            'name': name_policy.check(die, **kwargs),
+            'name': self.name_policy.check(die, **kwargs),
             'size': size,
             'members': {}
         }
 
-class ValidStructurePolicy(Policy):
+class ValidStructurePolicy(IPolicy):
     def check(self, die, **kwargs):
         return (
             die.has_name() or
@@ -45,94 +45,99 @@ class ValidStructurePolicy(Policy):
             die.has_linkage_name()
         ) and not die.is_artificial()
 
-class ValidTypedefPolicy(Policy):
+class ValidTypedefPolicy(IPolicy):
     def check(self, die, **kwargs):
         return die.has_name()
 
-class TypedefDataPolicy(Policy):
+class TypedefDataPolicy(IPolicy):
     def check(self, die, **kwargs):
         return {
             'name': die.name(),
             'type': die.type() if die.has_type() else ""
         }
 
-class ValidConstTypePolicy(Policy):
+class ValidConstTypePolicy(IPolicy):
     def check(self, die, **kwargs):
         return die.has_type()
 
-class ConstTypeDataPolicy(Policy):
+class ConstTypeDataPolicy(IPolicy):
     def check(self, die, **kwargs):
         return {
         "type": die.type()
     }
 
-class ValidUnionMemberPolicy(Policy):
+class ValidUnionMemberPolicy(IPolicy):
     def check(self, die, **kwargs):
         return die.has_name() and die.has_type()
 
-class UnionMemberDataPolicy(Policy):
+class UnionMemberDataPolicy(IPolicy):
     def check(self, die, **kwargs):
         return {
             "name": die.name(),
             "type": die.type()
         }
 
-class ValidUnionPolicy(Policy):
+class ValidUnionPolicy(IPolicy):
     def check(self, die, **kwargs):
         return die.has_byte_size()
 
-class UnionDataPolicy(Policy):
-    def check(self, die, **kwargs):
-        no_namespace_name_policy = kwargs.pop("no_namespace_name_policy")
+class UnionDataPolicy(IPolicy):
+    def __init__(self, no_namespace_name_policy):
+        self.no_namespace_name_policy = no_namespace_name_policy
 
+    def check(self, die, **kwargs):
         return {
-            "name": no_namespace_name_policy.check(die),
+            "name": self.no_namespace_name_policy.check(die),
             "size": die.byte_size(),
             "members": {}
         }
 
-class ValidArrayPolicy(Policy):
+class ValidArrayPolicy(IPolicy):
     def check(self, die, **kwargs):
         return die.has_sibling()
 
-class ValidSubrangePolicy(Policy):
+class ValidSubrangePolicy(IPolicy):
     def check(self, die, **kwargs):
         return die.has_type() and die.has_upper_bound()
 
-class ValidBaseTypePolicy(Policy):
+class ValidBaseTypePolicy(IPolicy):
     def check(self, die, **kwargs):
         return die.has_byte_size() and die.has_encoding() and die.has_name()
 
-class ValidStringTypePolicy(Policy):
+class ValidStringTypePolicy(IPolicy):
     def check(self, die, **kwargs):
         return die.has_byte_size()
 
-class ValidEnumerationPolicy(Policy):
+class ValidEnumerationPolicy(IPolicy):
     def check(self, die, **kwargs):
         return die.has_name() and die.has_byte_size() and die.has_type() and die.has_encoding()
 
-class ValidStaticStructureMemberPolicy(Policy):
-    def check(self, die, **kwargs):
-        valid_structuremember_policy = kwargs.pop("valid_structuremember_policy")
-        return valid_structuremember_policy.check(die) and die.has_external()
+class ValidStaticStructureMemberPolicy(IPolicy):
+    def __init__(self, valid_structure_member_policy):
+        self.valid_structure_member_policy = valid_structure_member_policy
 
-class ValidInstanceStructureMemberPolicy(Policy):
     def check(self, die, **kwargs):
-        valid_structuremember_policy = kwargs.pop("valid_structuremember_policy")
-        return valid_structuremember_policy.check(die) and die.has_data_member_location()
+        return self.valid_structure_member_policy.check(die) and die.has_external()
 
-class ValidStructureMemberPolicy(Policy):
+class ValidInstanceStructureMemberPolicy(IPolicy):
+    def __init__(self, valid_structure_member_policy):
+        self.valid_structure_member_policy = valid_structure_member_policy
+
+    def check(self, die, **kwargs):
+        return self.valid_structure_member_policy.check(die) and die.has_data_member_location()
+
+class ValidStructureMemberPolicy(IPolicy):
     def check(self, die, **kwargs):
         return die.has_name() and die.has_type()
 
-class StructureMemberDataPolicy(Policy):
+class StructureMemberDataPolicy(IPolicy):
     def check(self, die, **kwargs):
         return {
             'name': die.name(),
             'typeOffset': die.type()
         }
 
-class EnumerationDataPolicy(Policy):
+class EnumerationDataPolicy(IPolicy):
     def check(self, die, **kwargs):
         return {
             'name': die.name(),
@@ -142,55 +147,56 @@ class EnumerationDataPolicy(Policy):
             'values': {}
         }
 
-class ValidEnumeratorPolicy(Policy):
+class ValidEnumeratorPolicy(IPolicy):
     def check(self, die, **kwargs):
         return die.has_name() and die.has_const_value()
 
-class EnumeratorDataPolicy(Policy):
+class EnumeratorDataPolicy(IPolicy):
     def check(self, die, **kwargs):
         return {
             'name': die.name(),
             'value': die.const_value()
         }
 
-class ValidPointerTypePolicy(Policy):
+class ValidPointerTypePolicy(IPolicy):
     def check(self, die, **kwargs):
         return die.has_byte_size()
 
-class ValidReferenceTypePolicy(Policy):
+class ValidReferenceTypePolicy(IPolicy):
     def check(self, die, **kwargs):
         return die.has_byte_size()
 
-class PointerTypeDataPolicy(Policy):
+class PointerTypeDataPolicy(IPolicy):
     def check(self, die, **kwargs):
         return {
             'size': die.byte_size(),
             'type': die.type() if die.has_type() else str("void")
         }
 
-class ReferenceTypeDataPolicy(Policy):
+class ReferenceTypeDataPolicy(IPolicy):
     def check(self, die, **kwargs):
         return {
             'size': die.byte_size(),
             'type': die.type() if die.has_type() else str("void")
         }
 
-class StaticStructureMemberDataPolicy(Policy):
-    def check(self, die, **kwargs):
-        member = kwargs.pop("member")
-        structuremember_data_policy = kwargs.pop("structuremember_data_policy")
+class StaticStructureMemberDataPolicy(IPolicy):
+    def __init__(self, structure_member_data_policy):
+        self.structure_member_data_policy = structure_member_data_policy
 
+    def check(self, die, **kwargs):
+        member = kwargs.pop('member')
         member.is_static = True
-        return structuremember_data_policy.check(die)
+        return self.structure_member_data_policy.check(die)
 
-class InstanceStructureMemberDataPolicy(Policy):
+class InstanceStructureMemberDataPolicy(IPolicy):
+    def __init__(self, structure_member_data_policy):
+        self.structure_member_data_policy = structure_member_data_policy
 
     def check(self, die, **kwargs):
-        member = kwargs.pop("member")
-        structuremember_data_policy = kwargs.pop("structuremember_data_policy")
+        member = kwargs.pop('member')
 
-        ret = structuremember_data_policy.check(die)
-
+        ret = self.structure_member_data_policy.check(die)
         ret.update({"byteOffset": die.data_member_location()})
         member.byte_offset = die.data_member_location()
 
@@ -202,7 +208,7 @@ class InstanceStructureMemberDataPolicy(Policy):
             member.bit_offset = die.bit_offset()
         return ret
 
-class ArrayDataPolicy(Policy):
+class ArrayDataPolicy(IPolicy):
     def check(self, die, **kwargs):
         types = [x.offset for x in die.iter_children() if wrap_die(x).is_subrange_type()]
         return {
@@ -210,7 +216,7 @@ class ArrayDataPolicy(Policy):
             'subranges': types
         }
 
-class BaseTypeDataPolicy(Policy):
+class BaseTypeDataPolicy(IPolicy):
 
     def check(self, die, **kwargs):
         name = die.name()
@@ -222,32 +228,32 @@ class BaseTypeDataPolicy(Policy):
             'name': name
         }
 
-class StringTypeDataPolicy(Policy):
+class StringTypeDataPolicy(IPolicy):
     def check(self, die, **kwargs):
         return {
             'size': die.byte_size(),
             'name': 'string' if die.byte_size() > 1 else 'char'
         }
 
-class SubrangeDataPolicy(Policy):
-    def check(self, die, **kwargs):
-        subrange_lower_bound_policy = kwargs.pop("subrange_lower_bound_policy")
+class SubrangeDataPolicy(IPolicy):
+    def __init__(self, lower_bound_policy):
+        self.lower_bound_policy = lower_bound_policy
 
+    def check(self, die, **kwargs):
         return {
             'type': die.type(),
-            'lower_bound': subrange_lower_bound_policy.check(die),
+            'lower_bound': self.lower_bound_policy.check(die),
             'upper_bound': die.upper_bound(),
         }
 
-class ZeroIndexedSubrangeLowerBoundPolicy(Policy):
-    def check(self, die, **kwargs):
-        return die.lower_bound() if die.has_lower_bound() else 0
+class SubrangeLowerBoundPolicy(IPolicy):
+    def __init__(self, default):
+        self.default = default
 
-class OneIndexedSubrangeLowerBoundPolicy(Policy):
     def check(self, die, **kwargs):
-        return die.lower_bound() if die.has_lower_bound() else 1
+        return die.lower_bound() if die.has_lower_bound() else self.default
 
-class NoNamespaceNamePolicy(Policy):
+class NoNamespaceNamePolicy(IPolicy):
 
     def check(self, die, **kwargs):
         name = ''
@@ -261,27 +267,19 @@ class NoNamespaceNamePolicy(Policy):
             name = "UNKNOWN"
         return name
 
-class NamePolicy(Policy):
+class NamePolicy(IPolicy):
+    def __init__(self, no_namespace_name_policy):
+        self.no_namespace_name_policy = no_namespace_name_policy
+
     def check(self, die, **kwargs):
-        no_namespace_name_policy = kwargs.pop("no_namespace_name_policy")
-        name = no_namespace_name_policy.check(die)
+        name = self.no_namespace_name_policy.check(die)
 
         if die.has_namespace():
             return die.namespace + '::' + name
         else:
             return name
 
-class SubrangeDataForArrayParentPolicy(Policy):
-    def check(self, die, **kwargs):
-        flat = kwargs.pop("flat")
-
-        parent = die.get_parent()
-        if parent and parent.offset in flat.array_types:
-            flat.array_types[parent.offset]['upper_bound'] = flat.subrange_types[die.offset]['upper_bound']
-            flat.array_types[parent.offset]['lower_bound'] = flat.subrange_types[die.offset]['lower_bound']
-
-class NamespaceApplicationPolicy(Policy):
-
+class NamespaceApplicationPolicy(IPolicy):
     def check(self, die, **kwargs):
         namespace = kwargs.pop("namespace")
         new_namespace = namespace.create_namespace(die.name())
@@ -295,22 +293,22 @@ class NamespaceApplicationPolicy(Policy):
                 child.namespace = curr_ns + '::' + die.name()
         return new_namespace
 
-class IsInheritancePolicy(Policy):
+class IsInheritancePolicy(IPolicy):
     def check(self, die, **kwargs):
         return die.is_inheritance()
 
-class AllowArtificialTypesPolicy(Policy):
+class AllowArtificialTypesPolicy(IPolicy):
     def check(self, die, **kwargs):
         return False
 
-class DwarfV2AccessibilityPolicy(Policy):
+class DwarfV2AccessibilityPolicy(IPolicy):
     def check(self, die, **kwargs):
         if not die.has_accessibility():
             return 'public'
-        return ACCESSIBILITY[die.accessibility()]
+        return lookups.ACCESSIBILITY[die.accessibility()]
 
-class DwarfV2InheritanceAccessibilityPolicy(Policy):
+class DwarfV2InheritanceAccessibilityPolicy(IPolicy):
     def check(self, die, **kwargs):
         if not die.has_accessibility():
             return 'private'
-        return ACCESSIBILITY[die.accessibility()]
+        return lookups.ACCESSIBILITY[die.accessibility()]

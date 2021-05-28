@@ -1,3 +1,4 @@
+import importlib
 import json
 import logging
 from elftools.elf.elffile import ELFFile
@@ -7,55 +8,25 @@ from .structure import Structure
 from .member import Member
 
 from .wrapdie import wrap_die
-from .policies import defaultpolicylist, adapolicylist, fortranpolicylist
+from . import policies
+from .policies import default
+from .lookups import CODE_TO_LANG
 
-DEFAULT_LOWER_BOUND = {
-    0x01: 0,
-    0x02: 0,
-    0x03: 1,
-    0x04: 0,
-    0x05: 1,
-    0x06: 1,
-    0x07: 1,
-    0x08: 1,
-    0x09: 1,
-    0x0a: 1,
-    0x0b: 0,
-    0x0c: 0,
-    0x0d: 1,
-    0x0e: 1,
-    0x0f: 1,
-    0x10: 0,
-    0x11: 0,
-    0x12: 0,
-    0x13: 0,
-    0x14: 0,
-}
 
-LANG_CODES = {
-    0x01: "C",
-    0x02: "C",
-    0x03: "ADA",
-    0x04: "C++",
-    0x05: "COBOL",
-    0x06: "COBOL",
-    0x07: "FORTRAN",
-    0x08: "FORTRAN",
-    0x09: "PASCAL",
-    0x0a: "MODULA",
-    0x0b: "JAVA",
-    0x0c: "C",
-    0x0d: "ADA",
-    0x0e: "FORTRAN",
-    0x0f: "PLI",
-    0x10: "OBJ_C",
-    0x11: "OBJ_C++",
-    0x12: "UPC",
-    0x13: "D",
-    0x14: "PYTHON",
-}
-
+FLAT = None
 class FlatStructure:
+    '''
+    This is a structure that maps type-reference info to a dictionary
+    of data.  By type-reference, I mean the hexadecimal lookup value
+    found for each type in a dwarf structure.  This FlatStructure reduces
+    the amount of data and transforms it  for the purposes of this
+    script.  There is another set of data that is calculated as the script
+    processes the dwarf structure, and those are member.py, structure.py,
+    etc...  It's not enough to either maintain the FLAT structure or the
+    nested member structure currently.  Until I find a better way, both
+    are calculated at the same time and then the FLAT structure is used
+    to supplement the nested structures at the end of the script.
+    '''
     def __init__(self):
         self.structures = {}
         self.enumerations = {}
@@ -70,28 +41,27 @@ class FlatStructure:
         self.ignored_types = {}
         self.const_types = {}
 
-FLAT = None
-DETECTED_LANGUAGE = None
-DETECTED_VERSION = None
+'''
+This is the policy class that will be created based on the language
+'''
 POLICY = None
 
 def apply_policies(version, language):
     global POLICY
 
-    policy_class = defaultpolicylist.DefaultPolicyList
-    if language == 'ADA':
-        policy_class = adapolicylist.AdaPolicyList
-    elif language == 'FORTRAN':
-        policy_class = fortranpolicylist.FortranPolicyList
+    policy_language_module = default
+    detected_language = CODE_TO_LANG[language].lower()
 
-    POLICY = policy_class(version)
+    try:
+        policy_language_module = importlib.import_module(policies.__name__+'.'+detected_language)
+    except Exception:
+        pass
 
+    policy_module = importlib.import_module(policy_language_module.__name__+'.policy')
+    POLICY = policy_module.Policy(version, language)
 
 def process(files):
     global FLAT
-    global DETECTED_LANGUAGE
-    global DETECTED_DEFAULT_LOWER_BOUND
-    global DETECTED_VERSION
 
     namespace = Namespace('')
 
@@ -116,22 +86,20 @@ def process(files):
 
             language = top_DIE.language()
 
-            if language not in LANG_CODES:
+            if language not in CODE_TO_LANG:
                 logging.error('Unkown Language from producer {}'.format(language))
                 continue
             else:
-                DETECTED_LANGUAGE = LANG_CODES[language]
-                DETECTED_DEFAULT_LOWER_BOUND = DEFAULT_LOWER_BOUND[language]
-                logging.info("Detected Language " + DETECTED_LANGUAGE)
+                logging.info("Detected Language " + CODE_TO_LANG[language])
 
-            apply_policies(CU.header.version, DETECTED_LANGUAGE)
+            apply_policies(CU.header.version, language)
             die_info_rec(top_DIE, namespace)
 
 
         # Ada does not use DW_TAG_namespace like C++, so namespace inference comes from DW_AT_name of types
         # This function moves structures around and creates namespaces to make it look identical to what c++
         # processing would produce prior to calling "resolve_namespace".
-        if DETECTED_LANGUAGE == 'ADA':
+        if CODE_TO_LANG[language] == 'ADA':
             ada_disperse_structures(namespace)
 
         resolve_namespace(namespace)
@@ -139,10 +107,10 @@ def process(files):
     return namespace
 
 def build_base_type(die):
-    if not POLICY.ValidBaseTypePolicy(die):
+    if not POLICY.valid_base_type_policy(die):
         return
 
-    FLAT.base_types[die.offset] = POLICY.BaseTypeDataPolicy(die)
+    FLAT.base_types[die.offset] = POLICY.base_type_data_policy(die)
 
 def build_structure_child(structure, die, namespace):
     wrap_die(die)
@@ -150,21 +118,21 @@ def build_structure_child(structure, die, namespace):
     if die.is_template_type_param():
         #TODO implement some sort of template parameters
         pass
-    elif POLICY.IsInheritancePolicy(die):
-        structure.add_base_structure(die.type(), POLICY.InheritanceAccessibilityPolicy(die), die.data_member_location())
+    elif POLICY.is_inheritance_policy(die):
+        structure.add_base_structure(die.type(), POLICY.inheritance_accessibility_policy(die), die.data_member_location())
     elif die.is_member():
-        if not POLICY.ValidStructureMemberPolicy(die):
+        if not POLICY.valid_structure_member_policy(die):
             return
 
         _member = structure.create_member(
             die.name(), die.type()
         )
-        _member.accessibility = POLICY.AccessibilityPolicy(die)
+        _member.accessibility = POLICY.accessibility_policy(die)
 
-        if POLICY.ValidStaticStructureMemberPolicy(die):
-            return POLICY.StaticStructureMemberDataPolicy(die, _member)
-        elif POLICY.ValidInstanceStructureMemberPolicy(die):
-            return POLICY.InstanceStructureMemberDataPolicy(die, _member)
+        if POLICY.valid_static_structure_member_policy(die):
+            return POLICY.static_structure_member_data_policy(die, member=_member)
+        elif POLICY.valid_instance_structure_member_policy(die, member=_member):
+            return POLICY.instance_structure_member_data_policy(die, member=_member)
     elif die.is_subrange_type():
         build_subrange_type(die)
     elif die.is_structure_type():
@@ -176,12 +144,12 @@ def build_structure_child(structure, die, namespace):
 def build_structure_type(die, namespace):
 
     # invalid structure
-    if not POLICY.ValidStructurePolicy(die):
+    if not POLICY.valid_structure_policy(die):
         return
 
-    structure = namespace.create_structure(POLICY.NoNamespaceNamePolicy(die), die.byte_size() if die.has_byte_size() else 0)
+    structure = namespace.create_structure(POLICY.no_namespace_name_policy(die), die.byte_size() if die.has_byte_size() else 0)
 
-    FLAT.structures[die.offset] = POLICY.StructureDataPolicy(die)
+    FLAT.structures[die.offset] = POLICY.structure_data_policy(die)
 
     for child in die.iter_children():
         build_structure_child(structure, child, namespace)
@@ -193,83 +161,82 @@ def build_union_child(union, members, die):
         #TODO implement some sort of template parameters
         pass
     elif die.is_member():
-        if not POLICY.ValidUnionMemberPolicy(die):
+        if not POLICY.valid_union_member_policy(die):
             return
 
         _member = union.create_member(
             die.name(), die.type()
         )
-        _member.accessibility = POLICY.AccessibilityPolicy(die)
+        _member.accessibility = POLICY.accessibility_policy(die)
 
-        return POLICY.UnionMemberDataPolicy(die)
+        return POLICY.union_member_data_policy(die)
     elif die.is_subrange_type():
         build_subrange_type(die)
 
 def build_union_type(die, namespace):
 
     # invalid structure
-    if not POLICY.ValidUnionPolicy(die):
+    if not POLICY.valid_union_policy(die):
         return
 
-    union = namespace.create_union(POLICY.NoNamespaceNamePolicy(die), die.byte_size())
+    union = namespace.create_union(POLICY.no_namespace_name_policy(die), die.byte_size())
 
-    FLAT.unions[die.offset] = POLICY.UnionDataPolicy(die)
+    FLAT.unions[die.offset] = POLICY.union_data_policy(die)
     members = FLAT.unions[die.offset]['members']
 
     for child in die.iter_children():
         build_union_child(union, members, child)
 
 def build_type_def(die):
-    if not POLICY.ValidTypedefPolicy(die):
+    if not POLICY.valid_typedef_policy(die):
         return
 
-    FLAT.type_defs[die.offset] = POLICY.TypedefDataPolicy(die)
+    FLAT.type_defs[die.offset] = POLICY.typedef_data_policy(die)
 
 def build_array_type(die):
-    if not POLICY.ValidArrayPolicy(die):
+    if not POLICY.valid_array_policy(die):
         return
 
-    FLAT.array_types[die.offset] = POLICY.ArrayDataPolicy(die)
+    FLAT.array_types[die.offset] = POLICY.array_data_policy(die)
 
 def build_subrange_type(die):
-    if not POLICY.ValidSubrangePolicy(die):
+    if not POLICY.valid_subrange_policy(die):
         return
 
-    FLAT.subrange_types[die.offset] = POLICY.SubrangeDataPolicy(die)
-    #SUBRANGE_DATA_FOR_ARRAY_PARENT_POLICY(die, FLAT)
+    FLAT.subrange_types[die.offset] = POLICY.subrange_data_policy(die)
 
 def build_string_type(die):
-    if not POLICY.ValidStringTypePolicy(die):
+    if not POLICY.valid_string_type_policy(die):
         return
 
-    FLAT.string_types[die.offset] = POLICY.StringTypeDataPolicy(die)
+    FLAT.string_types[die.offset] = POLICY.string_type_data_policy(die)
 
 def build_pointer_type(die):
-    if not POLICY.ValidPointerTypePolicy(die):
+    if not POLICY.valid_pointer_type_policy(die):
         return
 
-    FLAT.pointer_types[die.offset] = POLICY.PointerTypeDataPolicy(die)
+    FLAT.pointer_types[die.offset] = POLICY.pointer_type_data_policy(die)
 
 def build_reference_type(die):
-    if not POLICY.ValidReferenceTypePolicy(die):
+    if not POLICY.valid_reference_type_policy(die):
         return
 
-    FLAT.reference_types[die.offset] = POLICY.ReferenceTypeDataPolicy(die)
+    FLAT.reference_types[die.offset] = POLICY.reference_type_data_policy(die)
 
 def build_enumeration_child(enumeration, values, die):
     wrap_die(die)
 
-    if not POLICY.ValidEnumeratorPolicy(die):
+    if not POLICY.valid_enumerator_policy(die):
         return
 
     _value = enumeration.add_value(
         die.name(), die.const_value()
     )
 
-    return POLICY.EnumeratorDataPolicy(die)
+    return POLICY.enumerator_data_policy(die)
 
 def build_enumeration_type(die, namespace):
-    if not POLICY.ValidEnumerationPolicy(die):
+    if not POLICY.valid_enumeration_policy(die):
         return
 
     enumeration = namespace.create_enumeration(
@@ -279,17 +246,17 @@ def build_enumeration_type(die, namespace):
         die.encoding()
     )
 
-    FLAT.enumerations[die.offset] = POLICY.EnumerationDataPolicy(die)
+    FLAT.enumerations[die.offset] = POLICY.enumeration_data_policy(die)
     values = FLAT.enumerations[die.offset]['values']
 
     for child in die.iter_children():
         build_enumeration_child(enumeration, values, child)
 
 def build_const_type(die):
-    if not POLICY.ValidConstTypePolicy(die):
+    if not POLICY.valid_const_type_policy(die):
         return
 
-    FLAT.const_types[die.offset] = POLICY.ConstTypeDataPolicy(die)
+    FLAT.const_types[die.offset] = POLICY.const_type_data_policy(die)
 
 def die_info_rec(die, namespace:Namespace):
     for child in die.iter_children():
@@ -318,7 +285,7 @@ def die_info_rec(die, namespace:Namespace):
         elif child.is_const_type():
             build_const_type(child)
         elif child.is_namespace():
-            new_namespace = POLICY.NamespaceApplicationPolicy(child, namespace)
+            new_namespace = POLICY.namespace_application_policy(child, namespace=namespace)
             die_info_rec(child, new_namespace)
 
         if not child.is_namespace():
