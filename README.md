@@ -6,7 +6,7 @@ Use dwarfgen to
 
 - Generate datastructures that promote easy domain specific analysis of code
 - Generate code in other languages
-- Generate IDL's (Interactive Data Language)
+- Generate IDL's (Interface Description Language)
 
 Dwarfgen introduces JIDL (JSON IDL) to the already crowded IDL space.  JIDL
 is less about being an IDL and more about being an intermediate representation
